@@ -1,0 +1,53 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>icon</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style>
+<canvas id="c" width="1024" height="1024"></canvas>
+<script type="module">
+// Draws the app icon with the game's own clay renderer. ?kind=any (rounded tile, transparent corners)
+// or ?kind=full (full-bleed, for maskable and Apple icons: the art stays inside the central safe zone).
+import { moon, waves, stars } from '/src/engine/stage.js';
+import { glow } from '/src/engine/clay.js';
+import { papelPicado, marigold } from '/src/engine/noir.js';
+
+const kind = new URLSearchParams(location.search).get('kind') || 'any';
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+const S = 1024 / 540;
+const FR = 7;
+
+ctx.save();
+if (kind === 'any') {
+  ctx.beginPath();
+  ctx.roundRect(0, 0, 1024, 1024, 210);
+  ctx.clip();
+}
+ctx.scale(S, S);
+ctx.translate(-210, 0); // the square is the middle 540 columns of the 960-wide diorama
+
+let g = ctx.createLinearGradient(0, 0, 0, 340);
+g.addColorStop(0, '#120a2e');
+g.addColorStop(0.55, '#3b2468');
+g.addColorStop(1, '#a0508c');
+ctx.fillStyle = g;
+ctx.fillRect(0, 0, 960, 540);
+stars(ctx, FR, 34, 250, 9);
+const r = kind === 'any' ? 150 : 130;
+moon(ctx, 480, 232, r, FR);
+
+g = ctx.createLinearGradient(0, 330, 0, 540);
+g.addColorStop(0, '#6a4a8a');
+g.addColorStop(0.12, '#2f5f86');
+g.addColorStop(1, '#0e2448');
+ctx.fillStyle = g;
+ctx.fillRect(0, 330, 960, 220);
+waves(ctx, 348, 560, '#3a86a3', '#12305a', FR, { rows: 6 });
+glow(ctx, 480, 360, 200, '#ffe8b0', 0.18);
+
+papelPicado(ctx, 262, 30, 698, 30, 22, FR, { n: 7, w: 40, h: 50, seed: 17 });
+marigold(ctx, 392, 478, 26, FR, 5);
+marigold(ctx, 478, 492, 30, FR, 6);
+marigold(ctx, 566, 480, 24, FR, 7);
+ctx.restore();
+document.title = 'ready';
+</script>

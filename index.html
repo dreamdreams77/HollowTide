@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#120a24">
+  <meta name="description" content="Hollow Tide: a claymation conspiracy adventure. Plays in the browser, installs as an app, works offline.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/favicon-64.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Hollow Tide">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Hollow Tide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Limelight&family=Poppins:ital,wght@0,500;0,600;0,700;0,800;1,600&display=swap">
+  <style>
+    /* Layout: one 16:9 stage, letterboxed to fit any viewport (container-query units keep the ratio exact). */
+    :root { color-scheme: dark; --bg: #120a24; --ink: #e9d9b8; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); overflow: hidden; }
+    body { box-sizing: border-box; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+    #wrap { position: relative; width: 100%; height: 100%; container-type: size; display: grid; place-items: center; }
+    #wrap { --ar: 1.7778; }
+    canvas { width: min(100cqw, calc(100cqh * var(--ar))); height: min(100cqh, calc(100cqw / var(--ar))); display: block; touch-action: none; -webkit-tap-highlight-color: transparent; user-select: none; cursor: none; }
+    #boot { position: absolute; inset: 0; display: grid; place-items: center; font: 600 16px/1.4 'Trebuchet MS', Verdana, sans-serif; letter-spacing: .08em; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="game" width="960" height="540" aria-label="Hollow Tide game canvas"></canvas>
+    <div id="boot">kneading the clay…</div>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
