@@ -1,0 +1,15 @@
+{
+  "name": "hollow-tide",
+  "version": "1.0.0",
+  "description": "A claymation conspiracy RPG. Plays in the browser, installs as an app, works offline.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=21" },
+  "scripts": {
+    "start": "node tools/serve.mjs 8080",
+    "build": "node tools/build.mjs",
+    "serve:dist": "node tools/serve.mjs 8081 dist",
+    "test": "node --test test/*.test.js"
+  }
+}
