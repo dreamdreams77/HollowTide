@@ -1,7 +1,7 @@
 name: Test game
 on:
   pull_request:
-    branches: [fix/hollowtide-loading-screen]
+    branches: [main, fix/hollowtide-loading-screen]
   push:
     branches: [graphics-preview]
 jobs:
