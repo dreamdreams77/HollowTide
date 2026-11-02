@@ -19,7 +19,7 @@ function poly(ctx, corners, o = {}) {
 }
 
 // half the width of each prop on the floor, so the game can tell when someone is standing behind it
-export const PROP_W = { post: 14, crates: 44, cart: 52, stool: 20, confessional: 60, pew: 58, coalcart: 48, anvil: 22 };
+export const PROP_W = { post: 14, crates: 44, cart: 52, stool: 20, confessional: 60, pew: 58, coalcart: 48, anvil: 22, fishrod: 26, flatstones: 34, shells: 40 };
 
 export const PROPS = {
   // a mooring post with its turns of rope, and a loose end lying on the planks
@@ -39,6 +39,40 @@ export const PROPS = {
     for (const x of [-12, 8]) slab(ctx, x - 3, -62, 6, 26, { color: '#6a4c30', seed: 9211 + x, frame: fr, outline: 0.5, noRim: true, alpha: 0.7, rot: -0.04 });
     blob(ctx, 34, -8, 15, 8, { color: '#8a7a62', seed: 9220, frame: fr, outline: 0.9, tex: 0.3 });
     blob(ctx, 34, -9, 8, 4, { color: '#5e4a40', seed: 9221, frame: fr, flat: true, outline: 0, noRim: true, gloss: 0 });
+  },
+  // Brine's fishing spot: a rod propped on a little bucket, the line dipping toward the water
+  fishrod(ctx, fr) {
+    base(ctx, 26);
+    blob(ctx, -12, -9, 11, 10, { color: '#6a5a4a', seed: 9501, frame: fr, outline: 1, tex: 0.4, occlusion: 0.5 });
+    blob(ctx, -12, -17, 10, 3.4, { color: '#2e2630', seed: 9502, frame: fr, flat: true, outline: 0, noRim: true, gloss: 0 });
+    limb(ctx, -14, -8, 22, -58, 3.2, 1.6, { color: '#8a6a44', seed: 9503, frame: fr, outline: 0.8, tex: 0.4 });
+    limb(ctx, 22, -58, 30 + (fr % 2), -14, 0.8, 0.8, { color: '#e6dcc4', seed: 9504, frame: fr, outline: 0.3, noRim: true, alpha: 0.85 });
+    blob(ctx, 30 + (fr % 2), -11, 3.4, 3.4, { color: '#d9553a', seed: 9505, frame: fr, outline: 0.7, occlusion: 0.2 });
+  },
+  // Slip's skipping stones: a little stack of flat pebbles and one ready to throw
+  flatstones(ctx, fr) {
+    base(ctx, 34);
+    blob(ctx, 0, -6, 26, 7, { color: '#7a7488', seed: 9601, frame: fr, outline: 1, tex: 0.4, occlusion: 0.5 });
+    blob(ctx, -2, -13, 20, 6, { color: '#8e889c', seed: 9602, frame: fr, outline: 1, tex: 0.4, occlusion: 0.4 });
+    blob(ctx, 2, -19, 14, 5, { color: '#a49eb0', seed: 9603, frame: fr, outline: 0.9, tex: 0.3, occlusion: 0.3 });
+    blob(ctx, 30, -4, 11, 4, { color: '#8e889c', seed: 9604, frame: fr, outline: 0.9, tex: 0.4, occlusion: 0.4, rot: 0.1 });
+  },
+  // the tidepool shell game: three shells in a ring of ripples, one nudged a little by the water
+  shells(ctx, fr) {
+    for (const [w, a] of [[40, 0.35], [30, 0.5]]) {
+      ctx.save();
+      ctx.globalAlpha = a;
+      ctx.strokeStyle = '#cfe0e8';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.ellipse(0, -2, w + (fr % 3), w * 0.28 + (fr % 3) * 0.4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    [[-22, '#d9a77a'], [0, '#e6c4a0'], [22, '#c98f6a']].forEach(([x, c], i) => {
+      blob(ctx, x, -8 - (i === 1 ? fr % 2 : 0), 12, 9, { color: c, seed: 9701 + i, frame: fr, outline: 1, tex: 0.3, occlusion: 0.4 });
+      for (const k of [-4, 0, 4]) limb(ctx, x + k * 0.5, -3, x + k, -14, 1, 0.8, { color: '#a07a56', seed: 9710 + i * 3 + k, frame: fr, outline: 0.2, noRim: true, alpha: 0.6 });
+    });
   },
   // a book cart: shelves of tablets on two wheels and a long handle
   cart(ctx, fr) {

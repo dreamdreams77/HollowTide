@@ -51,6 +51,9 @@ const pier = {
     { prop: 'crates', x: 112, y: 506 },
     { prop: 'post', x: 262, y: 474 },
     { prop: 'post', x: 610, y: 438 },
+    { prop: 'fishrod', x: 436, y: 446 },
+    { prop: 'flatstones', x: 366, y: 452 },
+    { prop: 'shells', x: 662, y: 362 },
   ],
 
   async enter(g) {
