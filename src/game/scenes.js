@@ -417,6 +417,37 @@ const archive = {
         },
       },
       {
+        id: 'index-cards', name: 'Hueso’s Loose Index Cards', rect: [270, 354, 132, 48], stand: [340, 438],
+        async use(g) {
+          await g.say('calaca', "Those cards are out of order. I was going to sort them, but then I remembered I have been putting it off since 1842. Would you care to have a go?");
+          const questions = [
+            { prompt: 'The old signs begin with which one?', options: ['Mouth', 'Eye', 'Tide'], answer: 0, reveal: 'Mouth. The thing that sings it up.' },
+            { prompt: 'What comes straight after the Hand?', options: ['Tide', 'Mouth', 'Eye'], answer: 2, reveal: 'Eye. The thing that watches.' },
+            { prompt: 'Which sign brings the sequence to its end?', options: ['Hand', 'Tide', 'Mouth'], answer: 1, reveal: 'Tide. The thing that takes it back.' },
+          ];
+          let correct = 0;
+          for (let i = 0; i < questions.length; i++) {
+            const q = questions[i];
+            const pick = await g.ask(`Card ${i + 1} of 3. ${q.prompt}`, q.options);
+            if (pick === q.answer) {
+              correct++;
+              await g.say('calaca', ['Well placed. I do enjoy a card that knows where it belongs.', 'Correct. The archive is briefly less untidy.', 'Quite right. I shall pretend I arranged that one.'][i]);
+            } else {
+              await g.say('calaca', q.reveal + ' It is written on the rack, if you would rather check than guess.', 'curious');
+            }
+          }
+          if (correct === 3 && !g.flag('index_cards_prize')) {
+            g.setFlag('index_cards_prize');
+            await g.say('calaca', "All three. Very good. Take this Wet Clay. I have more than enough paperweights.");
+            g.give('wetclay', 1);
+          } else if (correct === 3) {
+            await g.say('calaca', "Perfect again. I would give you another paperweight, but then I would have to find another paperweight.");
+          } else {
+            await g.say('calaca', `${correct} out of 3. Not a disaster. The cards have waited longer than either of us.`);
+          }
+        },
+      },
+      {
         id: 'panel', name: 'Lamp Lock', ...rect(A.panel), stand: [335, 440],
         async use(g) {
           if (g.flag('lamps_lit')) {
