@@ -88,3 +88,15 @@ test('fishing replay does not award the Moonfin prize twice', async () => {
   assert.equal(game.rewards.wetclay, undefined);
   assert.match(game.lines.at(-2)[1], /Another Moonfin/);
 });
+
+test('completing the fishing collection grants its own one-time reward', async () => {
+  const game = miniGameContext([0, 1, 2]);
+  const rolls = [0.1, 0.7, 0.95];
+  game.rng = () => rolls.shift();
+  await hotspot('pier', 'fishing').use(game);
+  assert.equal(game.flags.fishing_minnow_seen, true);
+  assert.equal(game.flags.fishing_crab_seen, true);
+  assert.equal(game.flags.fishing_moonfin_seen, true);
+  assert.equal(game.flags.fishing_collection_prize, true);
+  assert.equal(game.rewards.wetclay, 3);
+});
