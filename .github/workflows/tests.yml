@@ -12,5 +12,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm test
+      - run: node --test test/minigames.test.js test/dialogue.test.js test/optional-content.test.js
       - run: npm run build
