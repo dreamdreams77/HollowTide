@@ -90,20 +90,22 @@ async function house(g) {
     const c = await g.ask(memories[i][0] + '. What do you do?', ['Turn it over gently', 'Put it back', 'Take it with you']);
     if (c === 0 || c === 1) { found++; await g.say('narr', memories[i][1]); }
   }
-  if (found >= 2) {
+  if (found >= 2 && !done(g, 'house')) {
     finish(g, 'house'); await g.say('marl', "The house was not haunted. It was keeping a place for somebody.");
     g.raiseBond('ochre', 1);
-  } else await g.say('marl', "I should come back when I can give this place a little more time.");
+  } else if (done(g, 'house')) await g.say('marl', "The house is quiet now. It has told me what it needed to tell.");
+  else await g.say('marl', "I should come back when I can give this place a little more time.");
 }
 
 async function underPier(g) {
   await g.say('narr', "Something moves beneath the lowest plank. Not a husk. Not an eel. Something small enough to hide, and frightened enough to stay hidden.");
   const c = await g.ask('How do you approach?', ['Leave a little food and step away', 'Reach into the dark', 'Call for Brine']);
-  if (c === 0) {
+  if (c === 0 && !done(g, 'under_pier')) {
     await g.say('marl', "The little shape takes the food after you turn your back. Its shell is pale as the inside of a pearl.");
     await g.say('brine', "A harborling. They used to nest under the old piers. I thought the Guild had driven them all away.");
     finish(g, 'under_pier'); g.raiseBond('brine', 1);
-  } else if (c === 1) await g.say('narr', "It vanishes with a small, indignant splash. Some trust cannot be hurried.");
+  } else if (done(g, 'under_pier')) await g.say('marl', "The harborling watches from its shelter. It knows you now, and that is enough.");
+  else if (c === 1) await g.say('narr', "It vanishes with a small, indignant splash. Some trust cannot be hurried.");
   else { await g.say('brine', "Quietly, then. If it is still here, it has learned to be careful."); }
 }
 
@@ -115,10 +117,11 @@ async function clockmaker(g) {
   ];
   let n = 0;
   for (const p of parts) if (await g.ask(p.q, p.o) === p.a) n++;
-  if (n >= 2) {
+  if (n >= 2 && !done(g, 'clockmaker')) {
     finish(g, 'clockmaker'); g.give('wetclay', 1);
     await g.say('narr', "The clock gives one careful tick. A drawer opens. Inside is a note: Time was never the thing I wanted back. Only the chance to say goodbye.");
-  } else await g.say('marl', "The gears settle again. Better to leave them undamaged and try another day.");
+  } else if (done(g, 'clockmaker')) await g.say('marl', "The clock keeps its small, steady time. The note is safe in the journal.");
+  else await g.say('marl', "The gears settle again. Better to leave them undamaged and try another day.");
 }
 
 async function garden(g) {
@@ -145,11 +148,12 @@ async function midnight(g) {
     return;
   }
   const c = await g.ask('A ferry waits beyond the ordinary channel. Who should cross first?', ['The one who has waited longest', 'The one who is most afraid', 'Marl']);
-  if (c === 0) {
+  if (c === 0 && !done(g, 'midnight')) {
     finish(g, 'midnight'); g.raiseBond('ochre', 1);
     await g.say('narr', "The passengers are not ghosts. They are the things Mudhaven never finished saying. One by one, they step ashore, lighter than when they came aboard.");
     await g.say('ochre', "I thought the harbor would feel emptier. It feels as if somebody opened a window.");
-  } else await g.say('slip', "Not yet. The bell knows the difference between a crossing and an escape.");
+  } else if (done(g, 'midnight')) await g.say('ochre', "The channel is quiet now. I think they all found the shore they needed.");
+  else await g.say('slip', "Not yet. The bell knows the difference between a crossing and an escape.");
 }
 
 const JOURNAL = [
