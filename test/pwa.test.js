@@ -37,7 +37,7 @@ test('manifest icons exist at their declared sizes, with 192 and 512 in both "an
       assert.ok(manifest.icons.some((i) => i.purpose === purpose && i.sizes === size), `${purpose} ${size}`);
     }
   }
-  assert.deepEqual(pngSize(join(ROOT, 'icons/apple-touch-icon.png')), [180, 180]);
+  assert.deepEqual(pngSize(join(ROOT, 'apple-touch-icon.png')), [180, 180]);
 });
 
 test('the source page links the manifest and Apple touch icon but does NOT register the service worker', () => {
@@ -53,8 +53,8 @@ test('build ships page + manifest + icons + a stamped service worker, and only t
   try {
     execFileSync('node', [join(ROOT, 'tools/build.mjs'), '--out', join(dir, 'index.html')], { stdio: 'pipe' });
     for (const f of ['index.html', 'manifest.webmanifest', 'sw.js']) assert.ok(existsSync(join(dir, f)), f);
-    const icons = readdirSync(join(dir, 'icons'));
-    assert.ok(icons.includes('icon-512.png') && icons.includes('icon-maskable-512.png'));
+    const icons = readdirSync(dir);
+    assert.ok(icons.includes('icon-512.png') && icons.includes('icon-maskable-512.png') && icons.includes('apple-touch-icon.png'));
 
     const sw = readFileSync(join(dir, 'sw.js'), 'utf8');
     assert.doesNotMatch(sw, /const BUILD = '__BUILD__'/, 'build stamp was not applied');
@@ -68,7 +68,7 @@ test('build ships page + manifest + icons + a stamped service worker, and only t
     for (const ic of manifest.icons) assert.ok(list.includes('./' + ic.src), `${ic.src} should be precached`);
 
     const html = readFileSync(join(dir, 'index.html'), 'utf8');
-    assert.match(html, /serviceWorker\.register\('\.\/sw\.js'\)/);
+    assert.match(html, /serviceWorker\.register\('\.\/sw\.js', \{ updateViaCache: 'none' \}\)/);
     assert.doesNotMatch(html, /src="\.\/src\/main\.js"/, 'built page must be self-contained');
   } finally {
     rmSync(dir, { recursive: true, force: true });

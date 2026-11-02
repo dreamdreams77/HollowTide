@@ -118,21 +118,20 @@ const kb = (statSync(OUT).size / 1024).toFixed(0);
 
 // ---- installable app: manifest, icons and the service worker, next to the built page
 const outDir = dirname(OUT);
-const iconsDir = join(ROOT, 'icons');
-const icons = existsSync(iconsDir) ? readdirSync(iconsDir).filter((f) => f.endsWith('.png')).sort() : [];
+const icons = readdirSync(ROOT).filter((f) => /^icon-(?:maskable-)?(?:192|512)\.png$/.test(f)).sort();
 const manifestSrc = join(ROOT, 'manifest.webmanifest');
 const swSrc = join(ROOT, 'sw.js');
 if (existsSync(manifestSrc) && existsSync(swSrc)) {
   copyFileSync(manifestSrc, join(outDir, 'manifest.webmanifest'));
-  mkdirSync(join(outDir, 'icons'), { recursive: true });
-  for (const f of icons) copyFileSync(join(iconsDir, f), join(outDir, 'icons', f));
+  for (const f of icons) copyFileSync(join(ROOT, f), join(outDir, f));
+  if (existsSync(join(ROOT, 'apple-touch-icon.png'))) copyFileSync(join(ROOT, 'apple-touch-icon.png'), join(outDir, 'apple-touch-icon.png'));
 
   const pageName = relative(outDir, OUT).split('\\').join('/');
-  const files = ['./', './' + pageName, './manifest.webmanifest', ...icons.map((f) => `./icons/${f}`)];
+  const files = ['./', './' + pageName, './manifest.webmanifest', ...icons.map((f) => `./${f}`), ...(existsSync(join(ROOT, 'apple-touch-icon.png')) ? ['./apple-touch-icon.png'] : [])];
   const hash = createHash('sha1');
   hash.update(out);
   hash.update(readFileSync(manifestSrc));
-  for (const f of icons) hash.update(readFileSync(join(iconsDir, f)));
+  for (const f of icons) hash.update(readFileSync(join(ROOT, f)));
   const fontLink = html.match(/<link rel="stylesheet" href="(https:\/\/fonts\.googleapis\.com[^"]+)"/);
   const fontCss = fontLink ? fontLink[1].replace(/&amp;/g, '&') : '';
   const sw = readFileSync(swSrc, 'utf8')
