@@ -118,7 +118,7 @@ const kb = (statSync(OUT).size / 1024).toFixed(0);
 
 // ---- installable app: manifest, icons and the service worker, next to the built page
 const outDir = dirname(OUT);
-const icons = readdirSync(ROOT).filter((f) => /^icon-(?:maskable-)?(?:192|512)\\.png$/.test(f)).sort();
+const icons = readdirSync(ROOT).filter((f) => /^icon-(?:maskable-)?(?:192|512)\.png$/.test(f)).sort();
 const manifestSrc = join(ROOT, 'manifest.webmanifest');
 const swSrc = join(ROOT, 'sw.js');
 if (existsSync(manifestSrc) && existsSync(swSrc)) {
