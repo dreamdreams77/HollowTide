@@ -907,6 +907,11 @@ export function paintKiln(ctx, fr, st = {}) {
   pool(ctx, fr, dx + dw / 2, 478, 340, '#ff7a2a', st.open ? 0.16 : 0.34);
   pool(ctx, fr, 150, 494, 90, '#ffb040', 0.22);
   pool(ctx, fr, 810, 496, 90, '#ffb040', 0.22);
+  // Short, broken molten highlights catch on the uneven kiln tiles.
+  // They sit below the actors and stay dim enough to preserve floor detail.
+  streak(ctx, dx + dw / 2 - 34, 466, 52, 30, '#ff9a42', st.open ? 0.11 : 0.18, fr, 4318);
+  streak(ctx, 150, 486, 28, 16, '#ffd080', 0.12, fr, 4319);
+  streak(ctx, 810, 488, 30, 17, '#ffd080', 0.12, fr, 4320);
   embers(ctx, fr, 30, 12);
 }
 
