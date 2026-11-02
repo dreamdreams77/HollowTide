@@ -477,6 +477,10 @@ export function drawClay(ctx, pts, o = {}) {
   }
 
   // wet glint
+  if (o.gloss !== 0) {
+    const gl = o.gloss ?? 0.5;
+    const hx = x0 + w * 0.3;
+    const hy = y0 + h * 0.22;
     ctx.save();
     ctx.translate(hx, hy);
     ctx.rotate(-0.5);
