@@ -217,6 +217,45 @@ const pier = {
         },
       },
       {
+        id: 'stone-skip', name: "Slip's Skipping Stones", rect: [330, 410, 92, 38], stand: [376, 452],
+        async use(g) {
+          await g.say('slip', "Found some flat stones. I used to do this before I was put in the jar. I was very good. I was also very small, so the stones were enormous.");
+          await g.say('marl', "How do we play?");
+          await g.say('slip', "Three throws. I'll watch the water and you choose how hard to throw. Too soft and it sinks. Too hard and it goes straight to the next harbor.");
+          const throws = [
+            { label: 'First throw', hint: 'The water is barely moving.', target: 1 },
+            { label: 'Second throw', hint: 'A little chop is coming in.', target: 2 },
+            { label: 'Third throw', hint: 'The surface has gone glassy.', target: 0 },
+          ];
+          const powers = ['Gentle', 'Steady', 'Hard'];
+          let skips = 0;
+          for (let i = 0; i < throws.length; i++) {
+            const t = throws[i];
+            await g.say('slip', t.hint);
+            const pick = await g.ask(`${t.label}. How much power?`, powers);
+            if (pick === t.target) {
+              skips++;
+              await g.say('slip', ['Lovely. It kissed the water and kept going.', 'There! One, two, three skips!', 'That stone nearly made it to the lighthouse.'][i], 'cheer');
+            } else if (Math.abs(pick - t.target) === 1) {
+              await g.say('slip', 'Nearly. It skipped once, then thought better of it.', 'curious');
+            } else {
+              await g.say('slip', 'Straight down. A very committed splash.', 'sad');
+            }
+          }
+          if (skips === 3 && !g.flag('stone_skip_prize')) {
+            g.setFlag('stone_skip_prize');
+            await g.say('slip', "Three perfect throws! I knew you had it in you. Here, I saved you a nice smooth stone. And this bit of Wet Clay, because it looked lonely.");
+            g.give('wetclay', 1);
+          } else if (skips === 3) {
+            await g.say('slip', "A perfect round again! I'd give you another prize, but then I'd have to start giving away my actual stones.");
+          } else if (skips > 0) {
+            await g.say('slip', `${skips} clean skips. That's a good afternoon by any measure.`);
+          } else {
+            await g.say('slip', "Not one skip. That's all right. The water's patient, and so am I.");
+          }
+        },
+      },
+      {
         id: 'tidepool', name: 'Tidepool Shell Game', rect: [606, 320, 112, 42], stand: [650, 438],
         async use(g) {
           await g.say('marl', "Someone's left three little shells in the tidepool. There's a pearl under one of them. This looks like Brine's idea of a sensible afternoon.");
