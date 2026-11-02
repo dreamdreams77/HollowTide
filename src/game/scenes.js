@@ -244,7 +244,7 @@ const pier = {
           }
           if (skips === 3 && !g.flag('stone_skip_prize')) {
             g.setFlag('stone_skip_prize');
-            await g.say('slip', "Three perfect throws! I knew you had it in you. Here, I saved you a nice smooth stone. And this bit of Wet Clay, because it looked lonely.");
+            await g.say('slip', "Three perfect throws! I knew you had it in you. Here, take a bit of Wet Clay. It looked lonely.");
             g.give('wetclay', 1);
           } else if (skips === 3) {
             await g.say('slip', "A perfect round again! I'd give you another prize, but then I'd have to start giving away my actual stones.");
