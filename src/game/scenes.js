@@ -264,6 +264,11 @@ const pier = {
             g.flag('fishing_crab_seen') ? 'Mud Crab' : null,
             g.flag('fishing_moonfin_seen') ? 'Moonfin' : null,
           ].filter(Boolean);
+          if (record.length === 3 && !g.flag('fishing_collection_prize')) {
+            g.setFlag('fishing_collection_prize');
+            g.give('wetclay', 2);
+            await g.say('brine', "One of each. That's a proper little harbor collection. You've earned these. Don't spend them all in one place.");
+          }
           await g.say('marl', record.length ? `Your little fishing record: ${record.join(', ')}.` : "Nothing in the record yet. There's always another tide.");
         },
       },
