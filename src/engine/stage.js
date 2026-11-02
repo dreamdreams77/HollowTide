@@ -1054,8 +1054,11 @@ export function paintFore(ctx, id, fr) {
       chain(ctx, 52, 4, 108, fr, 8202);
       lantern(ctx, 52, 120, fr, true, '#ffb65c', 1.3);
       chain(ctx, 930, 4, 70, fr, 8203);
-      // a stack of tablets in the bottom-right corner
-      for (let i = 0; i < 4; i++) slab(ctx, 924 - (i % 2) * 6, 520 - i * 12 + EXT, 46, 14, { color: ['#b9a58a', '#a8957a', '#c4b296'][i % 3], seed: 8210 + i, frame: fr, outline: 0.8, occlusion: 0.5, tex: 0.4 });
+      // Uneven tablet stacks at both lower corners make the lens feel tucked into the archive.
+      for (let i = 0; i < 4; i++) {
+        slab(ctx, 924 - (i % 2) * 6, 520 - i * 12 + EXT, 46, 14, { color: ['#b9a58a', '#a8957a', '#c4b296'][i % 3], seed: 8210 + i, frame: fr, outline: 0.8, occlusion: 0.5, tex: 0.4 });
+        slab(ctx, 2 + (i % 2) * 5, 526 - i * 11 + EXT, 40, 13, { color: ['#aa987f', '#c0ad91', '#95846f'][i % 3], seed: 8220 + i, frame: fr, outline: 0.8, occlusion: 0.5, tex: 0.4 });
+      }
     });
     plane(ctx, 1.4, () => bokeh(ctx, fr, { n: 6, y0: 60, y1: 520, seed: 43, a: 0.07, colors: ['#ffe0a8', '#cfe4ff'], r0: 22, r1: 52 }));
   } else if (id === 'chapel') {
