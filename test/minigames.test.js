@@ -52,3 +52,17 @@ test('pier shell game can be replayed without duplicating its prize', async () =
   assert.equal(game.rewards.wetclay, undefined);
   assert.match(game.lines.at(-1)[1], /all out of prizes/);
 });
+
+test('Slip’s skipping-stones game awards its one-time perfect score prize', async () => {
+  const game = miniGameContext([1, 2, 0]);
+  await hotspot('pier', 'stone-skip').use(game);
+  assert.equal(game.rewards.wetclay, 1);
+  assert.equal(game.flags.stone_skip_prize, true);
+});
+
+test('Slip’s skipping-stones game does not award a prize for a rough round', async () => {
+  const game = miniGameContext([0, 0, 2]);
+  await hotspot('pier', 'stone-skip').use(game);
+  assert.equal(game.rewards.wetclay, undefined);
+  assert.equal(game.flags.stone_skip_prize, undefined);
+});
