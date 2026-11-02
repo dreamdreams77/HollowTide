@@ -66,3 +66,25 @@ test('Slip’s skipping-stones game does not award a prize for a rough round', a
   assert.equal(game.rewards.wetclay, undefined);
   assert.equal(game.flags.stone_skip_prize, undefined);
 });
+
+test('fishing records discovered species and awards a one-time Moonfin reward', async () => {
+  const game = miniGameContext([2, 0, 0]);
+  const rolls = [0.95, 0.1, 0.1];
+  game.rng = () => rolls.shift();
+  await hotspot('pier', 'fishing').use(game);
+  assert.equal(game.flags.fishing_moonfin_seen, true);
+  assert.equal(game.flags.fishing_minnow_seen, true);
+  assert.equal(game.flags.moonfin_prize, true);
+  assert.equal(game.rewards.wetclay, 1);
+  assert.match(game.lines.at(-1)[1], /Silver Minnow/);
+  assert.match(game.lines.at(-1)[1], /Moonfin/);
+});
+
+test('fishing replay does not award the Moonfin prize twice', async () => {
+  const game = miniGameContext([2, 2, 2], 0.99);
+  game.flags.moonfin_prize = true;
+  game.flags.fishing_moonfin_seen = true;
+  await hotspot('pier', 'fishing').use(game);
+  assert.equal(game.rewards.wetclay, undefined);
+  assert.match(game.lines.at(-2)[1], /Another Moonfin/);
+});
