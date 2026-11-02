@@ -233,12 +233,12 @@ const pier = {
             }
           }
           if (found === 3) {
-            await g.say('ochre', "Three out of three. That's annoyingly good. Here, take the little jar. I was saving it for a rainy day.");
             if (!g.flag('tidepool_prize')) {
+              await g.say('ochre', "Three out of three. That's annoyingly good. Here, take these two lumps of Wet Clay. I was saving them for a rainy day.");
               g.setFlag('tidepool_prize');
               g.give('wetclay', 2);
             } else {
-              g.toast('Ochre has no more prizes tucked away.');
+              await g.say('ochre', "Three out of three again. You're getting good at this. I'm all out of prizes, though.");
             }
           } else if (found > 0) {
             await g.say('ochre', `${found} out of 3. Not bad. The shells will still be here if you fancy another go.`);
