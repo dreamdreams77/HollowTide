@@ -189,5 +189,5 @@ export function optionalHotspots(g) {
   if (g.state.scene === 'kiln') {
     list.push(hot('extra-workshop', 'Kilnwright’s Workshop', [680, 390, 64, 42], [720, 466], workshop));
   }
-  return list.filter(h => !g.flag('extra_' + h.id.replace('extra-','')) || ['extra-lighthouse','extra-workshop','extra-bottles','extra-naturalist','extra-house','extra-under-pier','extra-clockmaker','extra-garden','extra-midnight','extra-journal'].includes(h.id));
+  return list;
 }
