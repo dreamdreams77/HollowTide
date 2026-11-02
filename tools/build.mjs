@@ -99,7 +99,15 @@ const code = `'use strict';\n${chunks.join('\n\n')}`.replace(/<\/script/gi, '<\\
 // Only the built page registers the service worker, so `npm start` (dev) never serves stale cached files.
 const REGISTER = `<script>
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+      // Check the release manifest on each visit; the worker still serves its shell offline.
+      await registration.update();
+    } catch {
+      // The game remains usable online without offline support.
+    }
+  });
 }
 </script>`;
 let out = html.replace(tag, () => `<script>\n${code}\n</script>\n${REGISTER}`);
