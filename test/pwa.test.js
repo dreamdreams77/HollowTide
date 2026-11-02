@@ -68,7 +68,7 @@ test('build ships page + manifest + icons + a stamped service worker, and only t
     for (const ic of manifest.icons) assert.ok(list.includes('./' + ic.src), `${ic.src} should be precached`);
 
     const html = readFileSync(join(dir, 'index.html'), 'utf8');
-    assert.match(html, /serviceWorker\.register\('\.\/sw\.js'\)/);
+    assert.match(html, /serviceWorker\.register\('\.\/sw\.js', \{ updateViaCache: 'none' \}\)/);
     assert.doesNotMatch(html, /src="\.\/src\/main\.js"/, 'built page must be self-contained');
   } finally {
     rmSync(dir, { recursive: true, force: true });
