@@ -217,6 +217,37 @@ const pier = {
         },
       },
       {
+        id: 'tidepool', name: 'Tidepool Shell Game', rect: [606, 320, 112, 42], stand: [650, 438],
+        async use(g) {
+          await g.say('marl', "Someone's left three little shells in the tidepool. There's a pearl under one of them. This looks like Brine's idea of a sensible afternoon.");
+          await g.say('ochre', "Don't rush it. The water gives the shells a little nudge when you're not looking.");
+          let found = 0;
+          for (let round = 0; round < 3; round++) {
+            const pearl = Math.floor(g.rng() * 3);
+            const pick = await g.ask(`Round ${round + 1} of 3. Which shell is hiding the pearl?`, ['Left shell', 'Middle shell', 'Right shell']);
+            if (pick === pearl) {
+              found++;
+              await g.say('marl', round === 2 ? "There it is. I knew I saw something shine." : "Got it. One for me.");
+            } else {
+              await g.say('ochre', ['Left', 'Middle', 'Right'][pearl] + " shell. Ah well. The tide gets one now.");
+            }
+          }
+          if (found === 3) {
+            await g.say('ochre', "Three out of three. That's annoyingly good. Here, take the little jar. I was saving it for a rainy day.");
+            if (!g.flag('tidepool_prize')) {
+              g.setFlag('tidepool_prize');
+              g.give('wetclay', 2);
+            } else {
+              g.toast('Ochre has no more prizes tucked away.');
+            }
+          } else if (found > 0) {
+            await g.say('ochre', `${found} out of 3. Not bad. The shells will still be here if you fancy another go.`);
+          } else {
+            await g.say('ochre', "Not one? Good thing nobody's keeping score. Except me. I'm keeping score.");
+          }
+        },
+      },
+      {
         id: 'hatch', name: 'Sunken Stair', rect: [494, 450, 108, 56], stand: [548, 512],
         async use(g) {
           if (!g.hasItem('brassthumb')) {
