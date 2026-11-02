@@ -24,7 +24,23 @@
     #wrap { position: relative; width: 100%; height: 100%; container-type: size; display: grid; place-items: center; }
     #wrap { --ar: 1.7778; }
     canvas { width: min(100cqw, calc(100cqh * var(--ar))); height: min(100cqh, calc(100cqw / var(--ar))); display: block; touch-action: none; -webkit-tap-highlight-color: transparent; user-select: none; cursor: none; }
-    #boot { position: absolute; inset: 0; display: grid; place-items: center; font: 600 16px/1.4 'Trebuchet MS', Verdana, sans-serif; letter-spacing: .08em; }
+    /* Hand-built miniature-film finish: a soft lens vignette, warm edge light and restrained grain.
+       These overlays sit above the canvas but never intercept pointer input. */
+    #wrap::before, #wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+    #wrap::before {
+      background:
+        radial-gradient(ellipse at 50% 44%, transparent 48%, rgba(8, 5, 22, .18) 78%, rgba(5, 3, 15, .48) 112%),
+        linear-gradient(180deg, rgba(255, 211, 151, .055), transparent 18%, transparent 82%, rgba(10, 5, 22, .16));
+      mix-blend-mode: multiply;
+    }
+    #wrap::after {
+      opacity: .105;
+      background-image: repeating-radial-gradient(ellipse at 17% 23%, rgba(255, 244, 218, .22) 0 0.55px, transparent .8px 3.4px);
+      background-size: 7px 7px;
+      mix-blend-mode: soft-light;
+    }
+    #boot { z-index: 3; color: #f4dfba; text-shadow: 0 2px 16px rgba(255, 159, 105, .35); background: radial-gradient(ellipse, rgba(40, 18, 49, .35), transparent 62%); }
+    @media (prefers-reduced-motion: reduce) { #wrap::after { opacity: .06; } }
   </style>
 </head>
 <body>

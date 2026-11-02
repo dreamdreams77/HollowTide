@@ -330,6 +330,11 @@ export function paintPier(ctx, fr, st = {}) {
     glints(ctx, fr, 610, 770, 298, 392, 14, 7);
   });
 
+  // Broken, hand-painted reflections connect the bright harbour lights to the moving water.
+  // Keep them faint and irregular so they read as ripples, not solid mirrored columns.
+  streak(ctx, 800, 356, 56, 22, '#ffd27a', 0.18, fr, 481);
+  streak(ctx, 128, 378, 34, 18, '#ff6f9f', 0.13, fr, 882);
+
   // lighthouse on its rock, rings spreading from the foot
   ripples(ctx, 800, 372, 84, 9, fr, { a: 0.32 });
   blob(ctx, 800, 352, 112, 30, { color: '#5a4a6e', seed: 470, frame: fr, wobble: 0.08 });
@@ -689,6 +694,14 @@ export function paintChapel(ctx, fr, st = {}) {
     for (const cx of [74, 178, 748]) {
       slab(ctx, cx - 26, 40, 52, 400, { color: '#2f7a74', seed: 3100 + cx, frame: fr, wobble: 0.012 });
       for (let k = 0; k < 7; k++) blob(ctx, cx - 18 + hash(cx, k) * 36, 60 + k * 54 + hash(cx, k, 1) * 18, 5 + hash(cx, k, 2) * 4, 4, { color: '#4a9a58', alpha: 0.7, seed: 3150 + cx + k, frame: fr, flat: true, outline: 0, noRim: true, gloss: 0 });
+      // Small pale barnacles cling to the shadow side of each drowned column.
+      for (let k = 0; k < 3; k++) {
+        const side = k % 2 ? 1 : -1;
+        const bx = cx + side * (18 + (k % 2) * 5);
+        const by = 306 + k * 34 + hash(cx, k, 7) * 10;
+        blob(ctx, bx, by, 7, 5, { color: '#9ac5ae', seed: 3260 + cx + k, frame: fr, alpha: 0.78, outline: 0.4, tex: 0.25 });
+        blob(ctx, bx + side * 5, by - 4, 4, 3, { color: '#c4d8b6', seed: 3270 + cx + k, frame: fr, alpha: 0.72, outline: 0, gloss: 0 });
+      }
       blob(ctx, cx, 44, 38, 14, { color: '#3a8a82', seed: 3200 + cx, frame: fr });
       blob(ctx, cx, 438, 40, 13, { color: '#3a8a82', seed: 3250 + cx, frame: fr });
     }
@@ -902,6 +915,11 @@ export function paintKiln(ctx, fr, st = {}) {
   pool(ctx, fr, dx + dw / 2, 478, 340, '#ff7a2a', st.open ? 0.16 : 0.34);
   pool(ctx, fr, 150, 494, 90, '#ffb040', 0.22);
   pool(ctx, fr, 810, 496, 90, '#ffb040', 0.22);
+  // Short, broken molten highlights catch on the uneven kiln tiles.
+  // They sit below the actors and stay dim enough to preserve floor detail.
+  streak(ctx, dx + dw / 2 - 34, 466, 52, 30, '#ff9a42', st.open ? 0.11 : 0.18, fr, 4318);
+  streak(ctx, 150, 486, 28, 16, '#ffd080', 0.12, fr, 4319);
+  streak(ctx, 810, 488, 30, 17, '#ffd080', 0.12, fr, 4320);
   embers(ctx, fr, 30, 12);
 }
 
@@ -1002,6 +1020,10 @@ export function paintBattleBG(ctx, themeName, fr, o = {}) {
 // creeps across the floor, slatted light, drifting petals. Cheap, and it is what makes the sets feel like a noir.
 export function paintAtmos(ctx, id, fr) {
   for (const L of LIT) lightWash(ctx, L.x, L.y, L.r, L.color, L.a, fr);
+  // A restrained veil across the action plane makes distant scenery recede while
+  // keeping the foreground figures crisp. Each room gets its own bounced-light tint.
+  const air = { pier: '#d99ab0', archive: '#b3a6d8', chapel: '#71cfc5', kiln: '#ed895d' }[id];
+  if (air) haze(ctx, 250, 520, air, 0.045, { peak: 0.58 });
   if (id === 'pier') {
     fogBank(ctx, fr, { y: 452, h: 90, n: 6, a: 0.12, color: '#b8d8e0', seed: 3, speed: 0.5 });
     petals(ctx, fr, { n: 8, x0: 200, x1: 900, y0: 120, y1: 520, seed: 6 });
@@ -1040,8 +1062,11 @@ export function paintFore(ctx, id, fr) {
       chain(ctx, 52, 4, 108, fr, 8202);
       lantern(ctx, 52, 120, fr, true, '#ffb65c', 1.3);
       chain(ctx, 930, 4, 70, fr, 8203);
-      // a stack of tablets in the bottom-right corner
-      for (let i = 0; i < 4; i++) slab(ctx, 924 - (i % 2) * 6, 520 - i * 12 + EXT, 46, 14, { color: ['#b9a58a', '#a8957a', '#c4b296'][i % 3], seed: 8210 + i, frame: fr, outline: 0.8, occlusion: 0.5, tex: 0.4 });
+      // Uneven tablet stacks at both lower corners make the lens feel tucked into the archive.
+      for (let i = 0; i < 4; i++) {
+        slab(ctx, 924 - (i % 2) * 6, 520 - i * 12 + EXT, 46, 14, { color: ['#b9a58a', '#a8957a', '#c4b296'][i % 3], seed: 8210 + i, frame: fr, outline: 0.8, occlusion: 0.5, tex: 0.4 });
+        slab(ctx, 2 + (i % 2) * 5, 526 - i * 11 + EXT, 40, 13, { color: ['#aa987f', '#c0ad91', '#95846f'][i % 3], seed: 8220 + i, frame: fr, outline: 0.8, occlusion: 0.5, tex: 0.4 });
+      }
     });
     plane(ctx, 1.4, () => bokeh(ctx, fr, { n: 6, y0: 60, y1: 520, seed: 43, a: 0.07, colors: ['#ffe0a8', '#cfe4ff'], r0: 22, r1: 52 }));
   } else if (id === 'chapel') {

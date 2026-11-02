@@ -3,6 +3,7 @@
 // code drives the live game, the screenshot tool and the tests.
 
 import { SCENES } from './scenes.js';
+import { optionalHotspots } from './optional-content.js';
 import { BANTER } from './banter.js';
 import { BattleView } from './battleview.js';
 import { CLUES, DEDUCTIONS, dedFor, ITEMS, GLAZES, CHARACTERS, newMember, statsAt } from './data.js';
@@ -282,8 +283,10 @@ export class Game {
       });
   }
   say(who, text, mood) {
+    // Spoken lines should read cleanly aloud. Replace dash punctuation with a natural pause.
+    const spoken = String(text).replace(/\s*[—–]\s*/g, ', ').replace(/\s+-\s+/g, ', ').replace(/,\s*,/g, ',').replace(/\s+,/g, ',');
     return new Promise((resolve) => {
-      this.dialogue = { who, text, mood, acc: 0, shown: 0, done: false, resolve };
+      this.dialogue = { who, text: spoken, mood, acc: 0, shown: 0, done: false, resolve };
       this.dirty = true;
     });
   }
@@ -619,7 +622,7 @@ export class Game {
       const side = this.state.px < n.x ? -58 : 58;
       out.push({ id: 'npc-' + n.id, name: n.name, rect: [b.x - 6, b.y - 6, b.w + 12, b.h + 12], stand: [clamp(n.x + side, 60, 900), clamp(n.y + 8, this.scene.walk.y0, this.scene.walk.y1)], use: n.use, npc: true, anchor: [n.x, b.y - 10] });
     }
-    for (const h of this.scene.hotspots(this)) {
+    for (const h of [...this.scene.hotspots(this), ...optionalHotspots(this)]) {
       if (h.visible && !h.visible(this)) continue;
       out.push({ ...h, name: typeof h.name === 'function' ? h.name(this) : h.name });
     }

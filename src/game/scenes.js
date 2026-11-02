@@ -207,13 +207,139 @@ const pier = {
         id: 'barrel', name: "Brine's Barrel", ...rect(P.barrel), stand: [858, 500],
         async use(g) {
           if (g.flag('barrel_taken')) {
-            await g.say('marl', 'Empty, but for a note: "Stop poking my barrel. —B"', 'sly');
+            await g.say('marl', 'Empty, but for a note: "Stop poking my barrel. Signed, B"', 'sly');
             return;
           }
           g.setFlag('barrel_taken');
-          await g.say('narr', "Inside Brine's emergency barrel: two tubs of Wet Clay and a small orb of Wedge glaze, wrapped in a note. \"For when you need to be stubborn. —B\"");
+          await g.say('narr', "Inside Brine's emergency barrel: two tubs of Wet Clay and a small orb of Wedge glaze, wrapped in a note. \"For when you need to be stubborn. Signed, B\"");
           g.give('wetclay', 2);
           g.giveGlaze('wedge', 'marl');
+        },
+      },
+      {
+        id: 'fishing', name: "Brine's Quiet Fishing Spot", rect: [438, 410, 56, 42], stand: [466, 438],
+        async use(g) {
+          await g.say('marl', "Someone's left a little fishing rod propped against the rail. The line is already in the water.");
+          await g.say('brine', "It's not much of a rod. It catches fish, though. Three casts, if you've the patience.");
+          const catches = [
+            { name: 'Silver Minnow', tell: 'A quick, bright flicker under the surface.', timing: 0, line: "A silver minnow. Quick little thing, isn't it?" },
+            { name: 'Mud Crab', tell: 'A slow tug, followed by a stubborn rattle.', timing: 1, line: "A mud crab. It looks furious about being interrupted." },
+            { name: 'Moonfin', tell: 'A pale blue light circles the bait, then vanishes.', timing: 2, line: "A Moonfin! Haven't seen one since I was a boy. Best let it go gently." },
+          ];
+          let caught = 0;
+          let rareCaught = false;
+          for (let cast = 0; cast < 3; cast++) {
+            const roll = g.rng();
+            const fish = catches[roll < 0.58 ? 0 : roll < 0.88 ? 1 : 2];
+            await g.say('brine', fish.tell);
+            const choice = await g.ask(`Cast ${cast + 1} of 3. When do you pull?`, ['At the first twitch', 'When the line dips', 'After the second tug']);
+            if (choice === fish.timing) {
+              caught++;
+              if (fish.name === 'Moonfin') {
+                rareCaught = true;
+                g.setFlag('fishing_moonfin_seen');
+              } else if (fish.name === 'Silver Minnow') {
+                g.setFlag('fishing_minnow_seen');
+              } else {
+                g.setFlag('fishing_crab_seen');
+              }
+              await g.say('brine', fish.line, fish.name === 'Moonfin' ? 'awe' : 'cheer');
+            } else {
+              await g.say('brine', "Gone. No need to yank the poor thing halfway to the lighthouse.");
+            }
+          }
+          if (rareCaught && !g.flag('moonfin_prize')) {
+            g.setFlag('moonfin_prize');
+            g.give('wetclay', 1);
+            await g.say('brine', "A Moonfin, and you brought it in without hurting it. Here, take a little Wet Clay. Consider it a fisherman's luck.");
+          } else if (rareCaught) {
+            await g.say('brine', "Another Moonfin. Let it go, same as the last one. Some things are better as a story.");
+          } else if (caught) {
+            await g.say('brine', `${caught} catch${caught === 1 ? '' : 'es'} this time. Not a bad use of an afternoon.`);
+          } else {
+            await g.say('brine', "Empty basket. The sea keeps its own counsel.");
+          }
+          const record = [
+            g.flag('fishing_minnow_seen') ? 'Silver Minnow' : null,
+            g.flag('fishing_crab_seen') ? 'Mud Crab' : null,
+            g.flag('fishing_moonfin_seen') ? 'Moonfin' : null,
+          ].filter(Boolean);
+          if (record.length === 3 && !g.flag('fishing_collection_prize')) {
+            g.setFlag('fishing_collection_prize');
+            g.give('wetclay', 2);
+            await g.say('brine', "One of each. That's a proper little harbor collection. You've earned these. Don't spend them all in one place.");
+          }
+          await g.say('marl', record.length ? `Your little fishing record: ${record.join(', ')}.` : "Nothing in the record yet. There's always another tide.");
+        },
+      },
+      {
+        id: 'stone-skip', name: "Slip's Skipping Stones", rect: [330, 410, 92, 38], stand: [376, 452],
+        async use(g) {
+          await g.say('slip', "Found some flat stones. I used to do this before I was put in the jar. I was very good. I was also very small, so the stones were enormous.");
+          await g.say('marl', "How do we play?");
+          await g.say('slip', "Three throws. I'll watch the water and you choose how hard to throw. Too soft and it sinks. Too hard and it goes straight to the next harbor.");
+          const throws = [
+            { label: 'First throw', hint: 'The water is barely moving.', target: 1 },
+            { label: 'Second throw', hint: 'A little chop is coming in.', target: 2 },
+            { label: 'Third throw', hint: 'The surface has gone glassy.', target: 0 },
+          ];
+          const powers = ['Gentle', 'Steady', 'Hard'];
+          let skips = 0;
+          for (let i = 0; i < throws.length; i++) {
+            const t = throws[i];
+            await g.say('slip', t.hint);
+            const pick = await g.ask(`${t.label}. How much power?`, powers);
+            if (pick === t.target) {
+              skips++;
+              await g.say('slip', ['Lovely. It kissed the water and kept going.', 'There! One, two, three skips!', 'That stone nearly made it to the lighthouse.'][i], 'cheer');
+            } else if (Math.abs(pick - t.target) === 1) {
+              await g.say('slip', 'Nearly. It skipped once, then thought better of it.', 'curious');
+            } else {
+              await g.say('slip', 'Straight down. A very committed splash.', 'sad');
+            }
+          }
+          if (skips === 3 && !g.flag('stone_skip_prize')) {
+            g.setFlag('stone_skip_prize');
+            await g.say('slip', "Three perfect throws! I knew you had it in you. Here, take a bit of Wet Clay. It looked lonely.");
+            g.give('wetclay', 1);
+          } else if (skips === 3) {
+            await g.say('slip', "A perfect round again! I'd give you another prize, but then I'd have to start giving away my actual stones.");
+          } else if (skips > 0) {
+            await g.say('slip', `${skips} clean skips. That's a good afternoon by any measure.`);
+          } else {
+            await g.say('slip', "Not one skip. That's all right. The water's patient, and so am I.");
+          }
+        },
+      },
+      {
+        id: 'tidepool', name: 'Tidepool Shell Game', rect: [606, 320, 112, 42], stand: [650, 438],
+        async use(g) {
+          await g.say('marl', "Someone's left three little shells in the tidepool. There's a pearl under one of them. This looks like Brine's idea of a sensible afternoon.");
+          await g.say('ochre', "Don't rush it. The water gives the shells a little nudge when you're not looking.");
+          let found = 0;
+          for (let round = 0; round < 3; round++) {
+            const pearl = Math.floor(g.rng() * 3);
+            const pick = await g.ask(`Round ${round + 1} of 3. Which shell is hiding the pearl?`, ['Left shell', 'Middle shell', 'Right shell']);
+            if (pick === pearl) {
+              found++;
+              await g.say('marl', round === 2 ? "There it is. I knew I saw something shine." : "Got it. One for me.");
+            } else {
+              await g.say('ochre', ['Left', 'Middle', 'Right'][pearl] + " shell. Ah well. The tide gets one now.");
+            }
+          }
+          if (found === 3) {
+            if (!g.flag('tidepool_prize')) {
+              await g.say('ochre', "Three out of three. That's annoyingly good. Here, take these two lumps of Wet Clay. I was saving them for a rainy day.");
+              g.setFlag('tidepool_prize');
+              g.give('wetclay', 2);
+            } else {
+              await g.say('ochre', "Three out of three again. You're getting good at this. I'm all out of prizes, though.");
+            }
+          } else if (found > 0) {
+            await g.say('ochre', `${found} out of 3. Not bad. The shells will still be here if you fancy another go.`);
+          } else {
+            await g.say('ochre', "Not one? Good thing nobody's keeping score. Except me. I'm keeping score.");
+          }
         },
       },
       {
@@ -383,6 +509,37 @@ const archive = {
         id: 'stairs', name: 'Stairs up', ...rect(A.stairs), stand: [86, 478],
         async use(g) {
           await g.go('pier', 548, 500);
+        },
+      },
+      {
+        id: 'index-cards', name: 'Hueso’s Loose Index Cards', rect: [270, 354, 132, 48], stand: [340, 438],
+        async use(g) {
+          await g.say('calaca', "Those cards are out of order. I was going to sort them, but then I remembered I have been putting it off since 1842. Would you care to have a go?");
+          const questions = [
+            { prompt: 'The old signs begin with which one?', options: ['Mouth', 'Eye', 'Tide'], answer: 0, reveal: 'Mouth. The thing that sings it up.' },
+            { prompt: 'What comes straight after the Hand?', options: ['Tide', 'Mouth', 'Eye'], answer: 2, reveal: 'Eye. The thing that watches.' },
+            { prompt: 'Which sign brings the sequence to its end?', options: ['Hand', 'Tide', 'Mouth'], answer: 1, reveal: 'Tide. The thing that takes it back.' },
+          ];
+          let correct = 0;
+          for (let i = 0; i < questions.length; i++) {
+            const q = questions[i];
+            const pick = await g.ask(`Card ${i + 1} of 3. ${q.prompt}`, q.options);
+            if (pick === q.answer) {
+              correct++;
+              await g.say('calaca', ['Well placed. I do enjoy a card that knows where it belongs.', 'Correct. The archive is briefly less untidy.', 'Quite right. I shall pretend I arranged that one.'][i]);
+            } else {
+              await g.say('calaca', q.reveal + ' It is written on the rack, if you would rather check than guess.', 'curious');
+            }
+          }
+          if (correct === 3 && !g.flag('index_cards_prize')) {
+            g.setFlag('index_cards_prize');
+            await g.say('calaca', "All three. Very good. Take this Wet Clay. I have more than enough paperweights.");
+            g.give('wetclay', 1);
+          } else if (correct === 3) {
+            await g.say('calaca', "Perfect again. I would give you another paperweight, but then I would have to find another paperweight.");
+          } else {
+            await g.say('calaca', `${correct} out of 3. Not a disaster. The cards have waited longer than either of us.`);
+          }
         },
       },
       {
