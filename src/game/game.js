@@ -283,7 +283,7 @@ export class Game {
   }
   say(who, text, mood) {
     // Spoken lines should read cleanly aloud. Replace dash punctuation with a natural pause.
-    const spoken = String(text).replace(/[—–]/g, ',').replace(/\s-\s/g, ', ');
+    const spoken = String(text).replace(/\s*[—–]\s*/g, ', ').replace(/\s+-\s+/g, ', ').replace(/,\s*,/g, ',').replace(/\s+,/g, ',');
     return new Promise((resolve) => {
       this.dialogue = { who, text: spoken, mood, acc: 0, shown: 0, done: false, resolve };
       this.dirty = true;
