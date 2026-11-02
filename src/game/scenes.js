@@ -217,6 +217,57 @@ const pier = {
         },
       },
       {
+        id: 'fishing', name: "Brine's Quiet Fishing Spot", rect: [438, 352, 104, 42], stand: [488, 438],
+        async use(g) {
+          await g.say('marl', "Someone's left a little fishing rod propped against the rail. The line is already in the water.");
+          await g.say('brine', "It's not much of a rod. It catches fish, though. Three casts, if you've the patience.");
+          const catches = [
+            { name: 'Silver Minnow', tell: 'A quick, bright flicker under the surface.', timing: 0, line: "A silver minnow. Quick little thing, isn't it?" },
+            { name: 'Mud Crab', tell: 'A slow tug, followed by a stubborn rattle.', timing: 1, line: "A mud crab. It looks furious about being interrupted." },
+            { name: 'Moonfin', tell: 'A pale blue light circles the bait, then vanishes.', timing: 2, line: "A Moonfin! Haven't seen one since I was a boy. Best let it go gently." },
+          ];
+          let caught = 0;
+          let rareCaught = false;
+          for (let cast = 0; cast < 3; cast++) {
+            const roll = g.rng();
+            const fish = catches[roll < 0.58 ? 0 : roll < 0.88 ? 1 : 2];
+            await g.say('brine', fish.tell);
+            const choice = await g.ask(`Cast ${cast + 1} of 3. When do you pull?`, ['At the first twitch', 'When the line dips', 'After the second tug']);
+            if (choice === fish.timing) {
+              caught++;
+              if (fish.name === 'Moonfin') {
+                rareCaught = true;
+                g.setFlag('fishing_moonfin_seen');
+              } else if (fish.name === 'Silver Minnow') {
+                g.setFlag('fishing_minnow_seen');
+              } else {
+                g.setFlag('fishing_crab_seen');
+              }
+              await g.say('brine', fish.line, fish.name === 'Moonfin' ? 'awe' : 'cheer');
+            } else {
+              await g.say('brine', "Gone. No need to yank the poor thing halfway to the lighthouse.");
+            }
+          }
+          if (rareCaught && !g.flag('moonfin_prize')) {
+            g.setFlag('moonfin_prize');
+            g.give('wetclay', 1);
+            await g.say('brine', "A Moonfin, and you brought it in without hurting it. Here, take a little Wet Clay. Consider it a fisherman's luck.");
+          } else if (rareCaught) {
+            await g.say('brine', "Another Moonfin. Let it go, same as the last one. Some things are better as a story.");
+          } else if (caught) {
+            await g.say('brine', `${caught} catch${caught === 1 ? '' : 'es'} this time. Not a bad use of an afternoon.`);
+          } else {
+            await g.say('brine', "Empty basket. The sea keeps its own counsel.");
+          }
+          const record = [
+            g.flag('fishing_minnow_seen') ? 'Silver Minnow' : null,
+            g.flag('fishing_crab_seen') ? 'Mud Crab' : null,
+            g.flag('fishing_moonfin_seen') ? 'Moonfin' : null,
+          ].filter(Boolean);
+          await g.say('marl', record.length ? `Your little fishing record: ${record.join(', ')}.` : "Nothing in the record yet. There's always another tide.");
+        },
+      },
+      {
         id: 'stone-skip', name: "Slip's Skipping Stones", rect: [330, 410, 92, 38], stand: [376, 452],
         async use(g) {
           await g.say('slip', "Found some flat stones. I used to do this before I was put in the jar. I was very good. I was also very small, so the stones were enormous.");
