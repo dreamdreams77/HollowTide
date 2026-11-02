@@ -323,6 +323,26 @@ export function drawFigure(ctx, kind, x, y, st = {}) {
 
   // torso + collar
   blob(ctx, 0, torsoY, f.bw, f.bh, { color: f.cloth, seed: seed + 26, frame: fr });
+  // Fine pressed-in tailoring: tiny curved fold lines catch the light like marks
+  // worked into the clay costume, adding scale and form without turning into ink outlines.
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = Math.max(0.8, f.bw * 0.055);
+  ctx.strokeStyle = 'rgba(255,235,198,0.22)';
+  ctx.beginPath();
+  ctx.moveTo(-f.bw * 0.68, torsoY - f.bh * 0.16);
+  ctx.quadraticCurveTo(-f.bw * 0.42, torsoY + f.bh * 0.02, -f.bw * 0.5, torsoY + f.bh * 0.34);
+  ctx.moveTo(f.bw * 0.56, torsoY - f.bh * 0.12);
+  ctx.quadraticCurveTo(f.bw * 0.36, torsoY + f.bh * 0.12, f.bw * 0.62, torsoY + f.bh * 0.3);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(35,22,48,0.2)';
+  ctx.lineWidth = Math.max(0.7, f.bw * 0.04);
+  ctx.beginPath();
+  ctx.moveTo(-f.bw * 0.55, torsoY + f.bh * 0.39);
+  ctx.quadraticCurveTo(0, torsoY + f.bh * 0.52, f.bw * 0.48, torsoY + f.bh * 0.36);
+  ctx.stroke();
+  ctx.restore();
   blob(ctx, 2, torsoY - f.bh * 0.78, f.bw * 0.72, 6.4, { color: f.cloth2, seed: seed + 27, frame: fr, outline: 1 });
   if (kind === 'marl') {
     blob(ctx, 0, torsoY + f.bh * 0.15, f.bw * 0.14, f.bh * 0.5, { color: f.cloth2, seed: seed + 28, frame: fr, outline: 0.8 });
