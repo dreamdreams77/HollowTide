@@ -1002,6 +1002,10 @@ export function paintBattleBG(ctx, themeName, fr, o = {}) {
 // creeps across the floor, slatted light, drifting petals. Cheap, and it is what makes the sets feel like a noir.
 export function paintAtmos(ctx, id, fr) {
   for (const L of LIT) lightWash(ctx, L.x, L.y, L.r, L.color, L.a, fr);
+  // A restrained veil across the action plane makes distant scenery recede while
+  // keeping the foreground figures crisp. Each room gets its own bounced-light tint.
+  const air = { pier: '#d99ab0', archive: '#b3a6d8', chapel: '#71cfc5', kiln: '#ed895d' }[id];
+  if (air) haze(ctx, 250, 520, air, 0.045, { peak: 0.58 });
   if (id === 'pier') {
     fogBank(ctx, fr, { y: 452, h: 90, n: 6, a: 0.12, color: '#b8d8e0', seed: 3, speed: 0.5 });
     petals(ctx, fr, { n: 8, x0: 200, x1: 900, y0: 120, y1: 520, seed: 6 });
