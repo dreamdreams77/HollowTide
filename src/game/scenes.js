@@ -207,11 +207,11 @@ const pier = {
         id: 'barrel', name: "Brine's Barrel", ...rect(P.barrel), stand: [858, 500],
         async use(g) {
           if (g.flag('barrel_taken')) {
-            await g.say('marl', 'Empty, but for a note: "Stop poking my barrel. —B"', 'sly');
+            await g.say('marl', 'Empty, but for a note: "Stop poking my barrel. Signed, B"', 'sly');
             return;
           }
           g.setFlag('barrel_taken');
-          await g.say('narr', "Inside Brine's emergency barrel: two tubs of Wet Clay and a small orb of Wedge glaze, wrapped in a note. \"For when you need to be stubborn. —B\"");
+          await g.say('narr', "Inside Brine's emergency barrel: two tubs of Wet Clay and a small orb of Wedge glaze, wrapped in a note. \"For when you need to be stubborn. Signed, B\"");
           g.give('wetclay', 2);
           g.giveGlaze('wedge', 'marl');
         },
