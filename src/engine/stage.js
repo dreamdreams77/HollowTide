@@ -694,6 +694,14 @@ export function paintChapel(ctx, fr, st = {}) {
     for (const cx of [74, 178, 748]) {
       slab(ctx, cx - 26, 40, 52, 400, { color: '#2f7a74', seed: 3100 + cx, frame: fr, wobble: 0.012 });
       for (let k = 0; k < 7; k++) blob(ctx, cx - 18 + hash(cx, k) * 36, 60 + k * 54 + hash(cx, k, 1) * 18, 5 + hash(cx, k, 2) * 4, 4, { color: '#4a9a58', alpha: 0.7, seed: 3150 + cx + k, frame: fr, flat: true, outline: 0, noRim: true, gloss: 0 });
+      // Small pale barnacles cling to the shadow side of each drowned column.
+      for (let k = 0; k < 3; k++) {
+        const side = k % 2 ? 1 : -1;
+        const bx = cx + side * (18 + (k % 2) * 5);
+        const by = 306 + k * 34 + hash(cx, k, 7) * 10;
+        blob(ctx, bx, by, 7, 5, { color: '#9ac5ae', seed: 3260 + cx + k, frame: fr, alpha: 0.78, outline: 0.4, tex: 0.25 });
+        blob(ctx, bx + side * 5, by - 4, 4, 3, { color: '#c4d8b6', seed: 3270 + cx + k, frame: fr, alpha: 0.72, outline: 0, gloss: 0 });
+      }
       blob(ctx, cx, 44, 38, 14, { color: '#3a8a82', seed: 3200 + cx, frame: fr });
       blob(ctx, cx, 438, 40, 13, { color: '#3a8a82', seed: 3250 + cx, frame: fr });
     }
