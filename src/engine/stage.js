@@ -330,6 +330,11 @@ export function paintPier(ctx, fr, st = {}) {
     glints(ctx, fr, 610, 770, 298, 392, 14, 7);
   });
 
+  // Broken, hand-painted reflections connect the bright harbour lights to the moving water.
+  // Keep them faint and irregular so they read as ripples, not solid mirrored columns.
+  streak(ctx, 800, 356, 56, 22, '#ffd27a', 0.18, fr, 481);
+  streak(ctx, 128, 378, 34, 18, '#ff6f9f', 0.13, fr, 882);
+
   // lighthouse on its rock, rings spreading from the foot
   ripples(ctx, 800, 372, 84, 9, fr, { a: 0.32 });
   blob(ctx, 800, 352, 112, 30, { color: '#5a4a6e', seed: 470, frame: fr, wobble: 0.08 });
