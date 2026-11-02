@@ -15,7 +15,7 @@ async function warmFonts() {
     if (!res.ok) return;
     await cache.put(FONT_CSS, res.clone());
     const css = await res.text();
-    const urls = [...css.matchAll(/url\\((https:[^)]+)\\)/g)].map((m) => m[1]);
+    const urls = [...css.matchAll(/url\((https:[^)]+)\)/g)].map((m) => m[1]);
     await Promise.all(urls.map((u) => fetch(u).then((r) => (r.ok ? cache.put(u, r) : null)).catch(() => null)));
   } catch {
     // Offline during install, or fonts blocked: the game falls back to system fonts.
@@ -70,13 +70,9 @@ self.addEventListener('fetch', (e) => {
       const cache = await caches.open(SHELL);
       const hit = await cache.match(req, { ignoreSearch: true });
       if (hit) return hit;
-      try {
-        const fresh = await fetch(req);
-        if (fresh.ok) await cache.put(req, fresh.clone());
-        return fresh;
-      } catch (err) {
-        throw err;
-      }
+      const fresh = await fetch(req);
+      if (fresh.ok) await cache.put(req, fresh.clone());
+      return fresh;
     })());
     return;
   }
