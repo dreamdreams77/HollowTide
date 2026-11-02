@@ -457,11 +457,26 @@ export function drawClay(ctx, pts, o = {}) {
     if (small >= 14 && o.bounce !== 0) shifted(-k * 0.25, -k * 2.7, AMB.bounce, k * 1.1);
   }
 
-  // wet glint
-  if (o.gloss !== 0) {
+  // Broad glaze reflection: a soft, hand-shaped highlight that makes each lump read as
+  // rounded clay rather than a flat painted cut-out. Kept subtle so fingerprints remain visible.
+  if (!o.flat && small >= 18 && o.gloss !== 0) {
     const gl = o.gloss ?? 0.5;
-    const hx = x0 + w * 0.3;
-    const hy = y0 + h * 0.22;
+    ctx.save();
+    ctx.translate(x0 + w * 0.31, y0 + h * 0.2);
+    ctx.rotate(-0.48);
+    ctx.scale(1, Math.max(0.22, h / Math.max(1, w)) * 0.72);
+    const sheen = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(8, w * 0.24));
+    sheen.addColorStop(0, `rgba(255,249,226,${0.11 * gl})`);
+    sheen.addColorStop(0.48, `rgba(255,239,205,${0.055 * gl})`);
+    sheen.addColorStop(1, 'rgba(255,239,205,0)');
+    ctx.fillStyle = sheen;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, Math.max(8, w * 0.24), Math.max(4, h * 0.16), 0, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // wet glint
     ctx.save();
     ctx.translate(hx, hy);
     ctx.rotate(-0.5);
