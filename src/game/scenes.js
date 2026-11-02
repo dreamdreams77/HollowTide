@@ -217,7 +217,7 @@ const pier = {
         },
       },
       {
-        id: 'fishing', name: "Brine's Quiet Fishing Spot", rect: [438, 352, 104, 42], stand: [488, 438],
+        id: 'fishing', name: "Brine's Quiet Fishing Spot", rect: [438, 410, 56, 42], stand: [466, 438],
         async use(g) {
           await g.say('marl', "Someone's left a little fishing rod propped against the rail. The line is already in the water.");
           await g.say('brine', "It's not much of a rod. It catches fish, though. Three casts, if you've the patience.");
