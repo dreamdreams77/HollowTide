@@ -50,7 +50,7 @@ You need nothing but Node 21 or newer (and any modern browser). There are **no d
 npm start            # dev server on http://localhost:8080  (or: node tools/serve.mjs 3000)
 npm run build        # dist/: one self-contained index.html plus manifest, icons and an offline service worker
 npm run serve:dist   # serve the built app on http://localhost:8081 (this is the one you can install)
-npm test             # 111 tests: unit, balance simulations, full headless playthroughs, render and app-file checks
+npm test             # 120 tests: unit, balance simulations, full headless playthroughs, render and app-file checks
 ```
 
 No Node? `python3 -m http.server` in the repo root also works (ES modules need http, not `file://`;
@@ -63,7 +63,8 @@ the built `dist/index.html` works from `file://`).
 | walk | tap the ground | arrow keys or WASD |
 | look / use / talk | tap a thing (sparkles mean "look here") | Enter / Space / E uses the nearest thing |
 | dialogue | tap to advance | Enter / Space |
-| journal, party, items | book button, top right | J or M |
+| journal, party, items, almanac, settings | book button, top right | J or M (Esc opens settings) |
+| choices | tap | 1-9, or arrows + Enter |
 | battle | tap a command when a name glows, then tap a target | arrows + Enter, Esc to go back |
 
 Play in either orientation. Sideways you get the full 16:9 diorama; upright, the same world scrolls past a follow-camera at

@@ -6,12 +6,12 @@ Chapter One is complete and playable end to end. Ideas for what could come next,
 
 - [ ] **Chapter Two: the Press.** The truth from chapter one points at the thing that made the thumbs. New scenes below the
       kiln, new clue set, a fourth party member.
-- [ ] **Ending-aware New Game+.** The title already remembers your last ending; let it change the opening on the pier.
-- [ ] **Settings panel** with text speed, a stop-motion fps toggle (12 / 24), and a "reduce boil" accessibility option.
-- [ ] **Hint system.** A journal tab that nudges toward the next unsolved thing, so no one is stuck for good.
+- [x] ~~Ending-aware New Game+.~~ Done: the pier opens differently after each ending (more to come in later scenes).
+- [x] ~~Settings panel~~ Done: sound, text speed, calm (no boil), wait/active battles. A 24 fps option is still open.
+- [x] ~~Hint system~~ Done: the Almanac tab (what now, loose threads) plus a Hint button in the Lamp Lock.
 - [ ] **More glazes** (a stun, a shield-all, a cure-slow) and one equippable per character that modifies a stat.
 - [x] ~~Depth pass: conditions and combos, a telegraphed boss, glaze mastery, eight-note deduction board, bonds, banter, a fourth ending, walk-behind props, lamp-aware shadows, reflections, idle fidgets.~~ Done.
-- [ ] A **bestiary** tab (the battle view already tracks what you have learned about each enemy).
+- [x] ~~Bestiary~~ Done, in the Almanac tab.
 - [ ] More deductions than the five we ship: let two *deductions* combine into a third.
 
 ## Polish
@@ -34,6 +34,13 @@ Chapter One is complete and playable end to end. Ideas for what could come next,
 - [ ] A scene editor page (`tools/`) to place hotspots by dragging.
 - [ ] Optional sprite-sheet path for hand-sculpted assets (see `ART_PIPELINE.md`).
 - [ ] Localization: all strings already live in scripts and data, so a string table is a mechanical refactor.
+
+## Before a store release (found in the release pass)
+
+- [ ] Real-device pass on iOS and Android (audio unlock, safe areas, performance; headless software rendering ran at about 8 fps, which says nothing about phones).
+- [ ] Self-hosted fonts, gamepad, save slots / export, localization, and a flee command (battles cannot be run from today).
+- [ ] Content: the chapter is roughly 30 to 45 minutes with four scenes. More rooms, a shop or crafting use for items, and a second chapter are the biggest gaps.
+- [ ] Voice blips per speaker, a proper credits screen, and a title-screen "how to play" card.
 
 ## Non-goals (for now)
 

@@ -6,6 +6,20 @@ import { Sequence, SIGN_ORDER } from './puzzles.js';
 
 const rect = (r) => ({ rect: r });
 
+// A second run remembers the first. The title already knows your last ending; the pier opens differently because of it.
+const REPRISE = {
+  'The Long Sleep': ['The tide goes out exactly as far as it did. Somewhere under it, something that was put to bed is still being sung to.', "...I've had this dream, Marl thinks. The one where I already know the end of the song."],
+  'The Waking': ['The sea stands a little taller than it should, and keeps its eyes politely on the horizon. Every low tide is now a sort of greeting.', "Everybody keeps saying it feels like the town is being watched. Marl has stopped finding that frightening."],
+  'The Forty-Second Thumb': ['On the Founders\' Wall, in the corner nobody counts, a forty-second tile. Marl does not need to look at the thumbprint to know whose it is.', "...Whoever I was last time, he's still keeping the tide. I should say thank you. Or sorry."],
+  'The Retained': ['There is a lamp lit in the Archive window that nobody remembers lighting, and a faint smell of stamp-ink drifting up the stairs.', "Hueso's door is open again. I should visit. I think someone asked him once."],
+};
+async function reprise(g) {
+  const r = g.lastEnding && REPRISE[g.lastEnding];
+  if (!r) return;
+  await g.say('narr', r[0]);
+  await g.say('marl', r[1], 'curious');
+}
+
 // Brine, once you have read the ledger: the conversation he has been dreading. Every branch leads to the log, none to a lecture.
 async function brineFather(g) {
   g.setFlag('brine_father');
@@ -64,6 +78,7 @@ const pier = {
     g.setFlag('intro_done');
     await g.wait(0.5);
     await g.say('narr', 'Mudhaven. The hour the sea forgets itself.');
+    await reprise(g);
     await g.say('marl', "Low tide. But the water has never gone out this far. Not in any story I was told.", 'worried');
     await g.say('narr', 'Out past the lighthouse, something pale lifts from the shallows, like the lid of a closed eye.');
     await g.say('marl', "...It's a rock. Don't be a fool, Marl. It's a rock.", 'worried');
@@ -141,6 +156,7 @@ const pier = {
         async use(g) {
           if (!g.hasClue('same_thumb')) {
             await g.say('narr', "The Founders' Wall: forty-one tiles, one for every founder of Mudhaven. Each carries a thumbprint pressed into the clay before it was fired.");
+            if (g.lastEnding === 'The Forty-Second Thumb') await g.say('narr', 'In the far corner, where the wall meets the rail, there is a forty-second tile. Nobody has ever mentioned it. It is the only one that is still faintly warm.');
             await g.say('marl', "Same whorl. Same little split in the ridge. Forty-one tiles... forty-one identical thumbs.", 'awe');
             await g.say('marl', 'Either the Founders shared a thumb, or somebody pressed them all.', 'worried');
             g.addClue('same_thumb');
@@ -502,6 +518,40 @@ async function eelAmbush(g) {
   await g.say('ochre', "Whatever's behind that gate doesn't want company. The glyphs are still waiting.", 'worried');
 }
 
+// A quiet moment by the bowl, once. Nothing here is required, and everything in it is remembered by the epilogue.
+async function restTalk(g) {
+  g.setFlag('rest_talk');
+  await g.say('narr', 'Nobody has said anything for a while. The chapel does not mind. It has been quiet for a very long time, and is good at it.');
+  const c = await g.ask('Who does Marl sit with?', ['Ochre', 'Slip', 'Nobody, just listen']);
+  if (c === 0) {
+    await g.say('ochre', g.flag('ochre_rust') ? "I keep thinking: Rust signed the Kiln's book and I let him. Four days, good money. I could have said the word 'don't'. It is a very short word." : "I keep thinking this is a ferry job. Someone needs to be taken across, and it's dark, and I'm the one with the boat. It has always been a ferry job.", 'sad');
+    const a = await g.ask('What does Marl say?', ["'You couldn't have known.'", "'Then say it next time. I'll be there.'", 'Say nothing, and pass her the bowl']);
+    if (a === 0) await g.say('ochre', "...I could have. That's what kills me. But thank you for the lie, kid; it's a kind one.", 'sad');
+    else if (a === 1) {
+      await g.say('ochre', "Next time. Yes. That's a better grammar than I've had in a year.", 'cheer');
+      g.raiseBond('ochre', 2);
+    } else {
+      await g.say('ochre', 'She drinks, hands it back, and looks at the water for a while longer than the water deserves.', 'sad');
+      g.raiseBond('ochre', 1);
+    }
+  } else if (c === 1) {
+    await g.say('slip', "Here's a secret. In the jar I used to count. Not days. Counting is for people who have somewhere to be. I counted the ones who walked past and didn't look in.", 'sad');
+    const a = await g.ask('What does Marl say?', ["'I'm sorry nobody looked.'", "'I looked.'", "'How many?'"]);
+    if (a === 0) await g.say('slip', "It isn't you who has to be sorry. But I'll take it. I'm a pickled thing; I'll take anything that's offered.", 'cheer');
+    else if (a === 1) {
+      await g.say('slip', "...Yes. You did. You looked at a jar for a whole minute and asked it a question. Nobody's done that in thirty-one years.", 'awe');
+      g.raiseBond('slip', 2);
+    } else {
+      await g.say('slip', "Four thousand, one hundred and six. And you. Four thousand, one hundred and seven. I'd like to stop counting now, if it's all right.", 'sad');
+      g.raiseBond('slip', 1);
+    }
+  } else {
+    await g.say('narr', 'Marl listens. The water in the walls drips on a slow, uneven count, like somebody practising a song they were told not to sing. After a while the other two stop pretending not to listen to it as well.');
+    g.raiseBond('ochre', 1);
+    g.raiseBond('slip', 1);
+  }
+}
+
 async function pressSign(g, kind) {
   if (g.flag('gate_open')) {
     await g.say('marl', "They're already glowing. Let sleeping gods lie.", 'worried');
@@ -654,6 +704,7 @@ const chapel = {
           }
           await g.say('narr', 'The bowl is full of cool brackish water. You sit a moment. It tastes like the sea remembering a lullaby.');
           g.healParty();
+          if (!g.flag('rest_talk') && g.inParty('slip')) await restTalk(g);
         },
       },
     ];
@@ -700,6 +751,10 @@ async function coach(g) {
 async function finale(g, resumed = false) {
   if (resumed) {
     await g.say('narr', 'The kiln is quiet now. The great door stands open, and behind it the pale lid waits, not impatiently, for somebody to decide.');
+  }
+  if (!resumed) {
+    if (g.bond('ochre') >= 2) await g.say('ochre', "Whatever you pick, kid. I'm still on the boat.", 'sly');
+    if (g.bond('slip') >= 2 && g.inParty('slip')) await g.say('slip', "I'll hum, if you want. Or not. I'm a very good audience.", 'sad');
   }
   // the options depend on what you know and who you have made friends with
   const options = ['Let it sleep', 'Wake it', 'Press my thumb to the lock'];
@@ -786,6 +841,7 @@ const kiln = {
       await g.say('marl', "You're the Warden.", 'angry');
       await g.say('warden', 'I am the cooling. I am the lid. I am the reason you have a harbor at all.', 'angry');
       await g.say('ochre', "Funny word for 'jailer'.", 'sly');
+      if (g.flag('ochre_rust')) await g.say('ochre', "...Four days of this, he did. Four days warm. Rust, you stupid, brave...", 'sad');
     } else {
       await g.say('warden', 'Back again, little thumb? I am so warm. Come and be warm.', 'angry');
       await coach(g);

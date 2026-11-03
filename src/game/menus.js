@@ -93,7 +93,7 @@ export function drawSettings(ctx, g, fr) {
   const b = box(g);
   const s = g.settings;
   panel(ctx, b.x, b.y, b.w, b.h, fr, { color: '#241f50', seed: 811 });
-  const rowH = b.portrait ? 74 : 60;
+  const rowH = b.portrait ? 98 : 60;
   const labelX = b.x + 26;
   const rows = [
     {

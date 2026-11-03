@@ -183,3 +183,21 @@ test('choices can be made from the keyboard: numbers, arrows and Enter', async (
   await new Promise((r) => setImmediate(r));
   assert.equal(got, 4);
 });
+
+test('a second run remembers the first: the pier opens differently after each ending', async () => {
+  for (const [ending, re] of [['The Long Sleep', /put to bed/], ['The Waking', /watched/], ['The Forty-Second Thumb', /forty-second tile/], ['The Retained', /Archive window/]]) {
+    const store = memoryStorage();
+    store.setItem('hollow-tide.ending', ending);
+    const g = new Game({ sound: null, storage: store });
+    const said = [];
+    const orig = g.say.bind(g);
+    g.say = (who, text, mood) => (said.push(text), Promise.resolve());
+    g.newGame();
+    for (let i = 0; i < 40; i++) {
+      g.update(0.05);
+      await new Promise((r) => setImmediate(r));
+    }
+    assert.ok(said.some((t) => re.test(t)), ending);
+    g.say = orig;
+  }
+});
