@@ -415,6 +415,11 @@ const archive = {
             await g.say('marl', 'A door the size of a barn, with a thumb-shaped hollow at its heart. The lamps beside it are half dark, and it does not seem to be in a mood.', 'curious');
             return;
           }
+          if (!g.flag('slip_joined')) {
+            await g.say('narr', 'Behind them, in the corner, the sealed jar goes tick. Tick. Tick-tick. Somebody inside is knocking the way you knock when you have been knocking for a very long time.');
+            await g.say('ochre', "I'm not opening that door with a Guild jar knocking at my back. Whatever's in there wants out, and I don't leave things in jars.", 'worried');
+            return;
+          }
           await g.say('narr', 'Marl presses the Brass Thumb into the hollow. The whole door shivers, as if it recognised the print.');
           g.sfx('door');
           g.setFlag('vault_open');
@@ -548,7 +553,7 @@ const chapel = {
   scale: [0.86, 1.1],
   start: { x: 140, y: 484 },
   wet: true, // the floor holds reflections
-  danger: (g) => (g.flag('eels_beaten') && !g.flag('gate_open') ? { enc: ['chapel_wander', 'chapel_vigil'], rate: 0.3 } : null),
+  danger: (g) => (g.flag('eels_beaten') && !g.flag('boss_beaten') ? { enc: ['chapel_wander', 'chapel_vigil'], rate: 0.3 } : null),
 
   paint(ctx, g, fr) {
     paintChapel(ctx, fr, {
@@ -678,6 +683,72 @@ async function speakHisName(g) {
   await g.say('warden', 'I cannot let the lid go. I can only be slower. Help me be slower, little thumb. Please. And be quick about it.', 'sad');
 }
 
+// Beaten at least once? Someone says the useful thing out loud, once, and leaves a few flasks of brine on the anvil.
+async function coach(g) {
+  const lost = (g.state.losses?.kiln_warden || 0) + (g.state.losses?.kiln_warden_named || 0);
+  if (!lost || g.flag('kiln_coached')) return;
+  g.setFlag('kiln_coached');
+  await g.say('ochre', "Before it breathes out, it breathes in. Did you see? The fire goes quiet and BANKED, and the next turn it's coming for all of us. Water in that gap and the breath goes out like a candle.", 'worried');
+  if (g.inParty('slip')) await g.say('slip', "Water is what I'm FOR. It's the only thing I'm for. Aim me at the banking bit and don't let me waste it on sulking.", 'cheer');
+  if ((g.state.inv.brineflask || 0) < 2) {
+    await g.say('narr', 'On the anvil, as if left for exactly this, sit two flasks of brine. Nobody wants to say who by.');
+    g.give('brineflask', 2 - (g.state.inv.brineflask || 0));
+  }
+}
+
+// The last door. Reached from the fight, and reached again by Continue, so a closed save never strands you here.
+async function finale(g, resumed = false) {
+  if (resumed) {
+    await g.say('narr', 'The kiln is quiet now. The great door stands open, and behind it the pale lid waits, not impatiently, for somebody to decide.');
+  }
+  // the options depend on what you know and who you have made friends with
+  const options = ['Let it sleep', 'Wake it', 'Press my thumb to the lock'];
+  const keys = ['sleep', 'wake', 'thumb'];
+  if (g.deduced('unfired') && g.flag('hueso_trust')) {
+    options.push('Send for the Archivist');
+    keys.push('retained');
+  }
+  options.push('Not yet');
+  keys.push('later');
+  const pick = keys[await g.ask('What does Marl do?', options)];
+  if (pick === 'later') {
+    await g.say('ochre', "Take a breath, kid. It's waited nine hundred years. It can wait while you check you've left nothing unsaid.", 'sly');
+    await g.go('chapel', 850, 470);
+    return;
+  }
+
+  const sleepText = g.deduced('lullaby')
+    ? "Marl lays a hand on the great cool lid and hums the ferry song, all four beats, and for the first time in nine hundred years the last line resolves. The eye closes. The tide comes home, gently, over everything. Mudhaven never learns what it stood on. But three people and one pickled thing do, and every low tide after, they sit on the pier and keep very quiet."
+    : "Marl lays a hand on the great cool lid and hums a ferry song, the one you hum to a child who cannot sleep. The eye closes. The tide comes home, gently, over everything. Mudhaven never learns what it stood on. But three people and one pickled thing do, and every low tide after, they sit on the pier and keep very quiet.";
+  const endings = {
+    sleep: { key: 'The Long Sleep', title: 'THE LONG SLEEP', text: sleepText },
+    wake: {
+      key: 'The Waking', title: 'THE WAKING',
+      text: 'The eye opens all the way. It is not angry; it is only very, very large. The sea stands up to look at you. Every pressed thing in Mudhaven feels its thumbprint warm at once. "Well," says Ochre, "that\'s one way to end a shift." Somewhere under the harbor, a god says its first word in nine hundred years, and the word is: "Oh."',
+    },
+    thumb: {
+      key: 'The Forty-Second Thumb', title: 'THE FORTY-SECOND THUMB',
+      text: "Marl's thumb fits the lock from the inside. It always did. The door doesn't open; it takes him gently, the way a hand takes a pot from the wheel. At dawn Ochre finds a ferry ticket on the boards, and a new thumbprint in the Founders' Wall: the forty-second. The tide is back by morning. The harbor is quiet. Somebody is keeping it that way.",
+    },
+    retained: {
+      key: 'The Retained', title: 'THE RETAINED',
+      text: 'He arrives at a stately pace, in his pinstripe suit, with forms. "I have been waiting nine hundred years for someone to ask," says Hueso, "and I find I do not mind that it was on a deadline." He presses his blank thumb to the lock, the one thumb in Mudhaven the Press has never fired, and the door takes it the way a hand takes a pot it has been waiting for. It does not close behind him. It simply stops being a door. The tide comes home. Marl keeps the Archive\'s stamp. APPROVED, it says, and under it, smaller: Retained. Reason: he asked.',
+    },
+  };
+  if (pick === 'retained') {
+    await g.say('narr', 'Marl sends Slip up the stairs with a message: three words, and a thumbprint that does not match.');
+    await g.fadeTo(0.55, 0.6);
+    await g.say('calaca', 'I came as fast as the regulations would allow, which is to say: at a walk.', 'sly');
+    await g.say('calaca', 'You will have noticed that the Press needs a thumb it can hold, and that every thumb in this town was fired hard enough to be held. Except one. It is a small, ridiculous distinction. I have waited a very long time to be useful.', 'sad');
+    await g.say('marl', "Hueso... you don't have to.", 'sad');
+    await g.say('calaca', 'I know. That is what makes it a form and not a sentence. Retained, as record-keeper. Reason: he asked.', 'sly');
+    await g.fadeTo(0, 0.4);
+  }
+  const e = endings[pick];
+  const ep = epilogue(g);
+  await g.showEnding(ep.length ? { ...e, text: `${e.text} ${ep.join(' ')}` } : e);
+}
+
 const kiln = {
   id: 'kiln',
   name: 'The Kiln Gate',
@@ -697,7 +768,12 @@ const kiln = {
   ],
 
   async enter(g) {
-    if (g.flag('boss_beaten')) return;
+    // The Warden is down and the door is open: whether you have just won, or are coming back from a saved game or from the
+    // chapel, the only thing left in this room is the choice.
+    if (g.flag('boss_beaten')) {
+      await finale(g, true);
+      return;
+    }
     let enc = 'kiln_warden';
     if (!g.flag('warden_met')) {
       g.setFlag('warden_met');
@@ -712,16 +788,23 @@ const kiln = {
       await g.say('ochre', "Funny word for 'jailer'.", 'sly');
     } else {
       await g.say('warden', 'Back again, little thumb? I am so warm. Come and be warm.', 'angry');
+      await coach(g);
     }
-    if (g.deduced('cobb')) {
-      const c = await g.ask('The Warden was a man called Cobb. What does Marl say?', ['Say his name', 'Fight it']);
-      if (c === 0) {
-        await speakHisName(g);
-        g.setFlag('warden_named');
-        enc = 'kiln_warden_named';
-      } else {
-        await g.say('warden', 'BACK INTO THE PRESS.', 'angry');
-      }
+    // Every way of meeting him ends in the same three options at most; stepping back is always one of them, so a party that
+    // is out of its depth can walk away, fight wanderers in the chapel for experience and come back.
+    const named = g.deduced('cobb');
+    const options = named ? ['Say his name', 'Fight it', 'Step back'] : ['Stand and fight', 'Step back'];
+    const c = await g.ask(named ? 'The Warden was a man called Cobb. What does Marl say?' : 'The Warden banks its fire and waits.', options);
+    if (c === options.length - 1) {
+      await g.say('ochre', "Not like this. Back up the stairs, kid; there's nothing in there that gets less hot by us being half-cooked.", 'worried');
+      await g.say('warden', 'I will be here. I am always here. It is the one thing I am good at.', 'sad');
+      await g.go('chapel', 850, 470);
+      return;
+    }
+    if (named && c === 0) {
+      await speakHisName(g);
+      g.setFlag('warden_named');
+      enc = 'kiln_warden_named';
     } else {
       await g.say('warden', 'BACK INTO THE PRESS.', 'angry');
     }
@@ -736,7 +819,14 @@ const kiln = {
   },
 
   hotspots() {
-    return [];
+    return [
+      {
+        id: 'back', name: 'Back to the Chapel', rect: [0, 436, 90, 104], stand: [130, 490],
+        async use(g) {
+          await g.go('chapel', 850, 470);
+        },
+      },
+    ];
   },
 };
 
@@ -773,45 +863,7 @@ async function endingScene(g) {
   await g.say('ochre', "The sea is its dream. Low tide is its breath. And the Guild has been holding its nose shut for nine hundred years.", 'sad');
   await g.say('marl', "...And this lock is shaped like my thumb. Because I'm the thumb it was made to fit.", 'awe');
 
-  // the options depend on what you know and who you have made friends with
-  const options = ['Let it sleep', 'Wake it', 'Press my thumb to the lock'];
-  const keys = ['sleep', 'wake', 'thumb'];
-  if (g.deduced('unfired') && g.flag('hueso_trust')) {
-    options.push('Send for the Archivist');
-    keys.push('retained');
-  }
-  const pick = keys[await g.ask('What does Marl do?', options)];
-
-  const sleepText = g.deduced('lullaby')
-    ? "Marl lays a hand on the great cool lid and hums the ferry song, all four beats, and for the first time in nine hundred years the last line resolves. The eye closes. The tide comes home, gently, over everything. Mudhaven never learns what it stood on. But three people and one pickled thing do, and every low tide after, they sit on the pier and keep very quiet."
-    : "Marl lays a hand on the great cool lid and hums a ferry song, the one you hum to a child who cannot sleep. The eye closes. The tide comes home, gently, over everything. Mudhaven never learns what it stood on. But three people and one pickled thing do, and every low tide after, they sit on the pier and keep very quiet.";
-  const endings = {
-    sleep: { key: 'The Long Sleep', title: 'THE LONG SLEEP', text: sleepText },
-    wake: {
-      key: 'The Waking', title: 'THE WAKING',
-      text: 'The eye opens all the way. It is not angry; it is only very, very large. The sea stands up to look at you. Every pressed thing in Mudhaven feels its thumbprint warm at once. "Well," says Ochre, "that\'s one way to end a shift." Somewhere under the harbor, a god says its first word in nine hundred years, and the word is: "Oh."',
-    },
-    thumb: {
-      key: 'The Forty-Second Thumb', title: 'THE FORTY-SECOND THUMB',
-      text: "Marl's thumb fits the lock from the inside. It always did. The door doesn't open; it takes him gently, the way a hand takes a pot from the wheel. At dawn Ochre finds a ferry ticket on the boards, and a new thumbprint in the Founders' Wall: the forty-second. The tide is back by morning. The harbor is quiet. Somebody is keeping it that way.",
-    },
-    retained: {
-      key: 'The Retained', title: 'THE RETAINED',
-      text: 'He arrives at a stately pace, in his pinstripe suit, with forms. "I have been waiting nine hundred years for someone to ask," says Hueso, "and I find I do not mind that it was on a deadline." He presses his blank thumb to the lock, the one thumb in Mudhaven the Press has never fired, and the door takes it the way a hand takes a pot it has been waiting for. It does not close behind him. It simply stops being a door. The tide comes home. Marl keeps the Archive\'s stamp. APPROVED, it says, and under it, smaller: Retained. Reason: he asked.',
-    },
-  };
-  if (pick === 'retained') {
-    await g.say('narr', 'Marl sends Slip up the stairs with a message: three words, and a thumbprint that does not match.');
-    await g.fadeTo(0.55, 0.6);
-    await g.say('calaca', 'I came as fast as the regulations would allow, which is to say: at a walk.', 'sly');
-    await g.say('calaca', 'You will have noticed that the Press needs a thumb it can hold, and that every thumb in this town was fired hard enough to be held. Except one. It is a small, ridiculous distinction. I have waited a very long time to be useful.', 'sad');
-    await g.say('marl', "Hueso... you don't have to.", 'sad');
-    await g.say('calaca', 'I know. That is what makes it a form and not a sentence. Retained, as record-keeper. Reason: he asked.', 'sly');
-    await g.fadeTo(0, 0.4);
-  }
-  const e = endings[pick];
-  const ep = epilogue(g);
-  await g.showEnding(ep.length ? { ...e, text: `${e.text} ${ep.join(' ')}` } : e);
+  await finale(g);
 }
 
 export const SCENES = { pier, archive, chapel, kiln };

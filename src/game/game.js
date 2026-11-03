@@ -5,8 +5,8 @@
 import { SCENES } from './scenes.js';
 import { BANTER } from './banter.js';
 import { BattleView } from './battleview.js';
-import { CLUES, DEDUCTIONS, dedFor, ITEMS, GLAZES, CHARACTERS, newMember, statsAt } from './data.js';
-import { scrambleLamps, pressLamp, isLit } from './puzzles.js';
+import { CLUES, DEDUCTIONS, dedFor, ITEMS, GLAZES, CHARACTERS, newMember, statsAt, ENDING_KEYS, TEXT_SPEEDS, DEFAULT_SETTINGS } from './data.js';
+import { scrambleLamps, pressLamp, isLit, minimalSolution } from './puzzles.js';
 import { drawFigure, figureBounds } from '../engine/actors.js';
 import { PROPS, PROP_W } from '../engine/props.js';
 import { setKeyLights } from '../engine/noir.js';
@@ -14,7 +14,8 @@ import { filmFinish } from '../engine/clay.js';
 import { paintTitle, paintAtmos, paintFore, setStageExtend, lightsNow, GRADES } from '../engine/stage.js';
 import { setParallax } from '../engine/depth.js';
 import { clamp, lerp, mulberry32 } from '../engine/rng.js';
-import { drawHud, drawHover, drawToasts, drawDialogue, drawChoice, drawMenu, drawLampPuzzle, drawTitleUI, drawEnding, drawEdgeHints, sparkle } from './ui.js';
+import { drawHud, drawHover, drawToasts, drawDialogue, drawChoice, drawMenu, drawLampPuzzle, drawTitleUI, drawEnding, drawEdgeHints, sparkle, MENU_TABS } from './ui.js';
+import { drawAlmanac, drawSettings } from './menus.js';
 
 // The logical canvas is 960x540 in landscape, or 540 wide by (up to ~1200) tall in portrait. In portrait the world
 // (always painted as a 960x540 diorama) is shown through a follow camera, zoomed up to 1.6x, under a HUD bar.
@@ -40,6 +41,8 @@ function gaze(sp, at) {
 
 const SAVE_KEY = 'hollow-tide.save.v1';
 const ENDING_KEY = 'hollow-tide.ending';
+const ENDINGS_KEY = 'hollow-tide.endings';
+const SETTINGS_KEY = 'hollow-tide.settings';
 const SPEED = 215;
 
 export class Game {
@@ -85,6 +88,11 @@ export class Game {
     this.dollyAt = [480, 400];
     this.hoverAt = null; // world position of the hotspot under the pointer, so the lead can glance at it
     this.lastEnding = this.read(ENDING_KEY);
+    this.endingsSeen = this.readJSON(ENDINGS_KEY, []).filter((k) => ENDING_KEYS.includes(k));
+    this.settings = { ...DEFAULT_SETTINGS, ...this.readJSON(SETTINGS_KEY, {}) };
+    this.confirmNew = 0; // seconds left on the "really erase your save?" prompt
+    this.lastEnc = null;
+    if (this.sound && this.settings.sound === false) this.sound.setEnabled(false);
     this.sound?.music('title');
   }
 
@@ -200,6 +208,21 @@ export class Game {
       /* private mode etc. */
     }
   }
+  readJSON(key, fallback) {
+    try {
+      const raw = this.read(key);
+      const v = raw ? JSON.parse(raw) : fallback;
+      return v && typeof v === 'object' ? v : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+  setSetting(key, val) {
+    this.settings[key] = val;
+    if (key === 'sound') this.sound?.setEnabled(!!val);
+    this.write(SETTINGS_KEY, JSON.stringify(this.settings));
+    this.dirty = true;
+  }
   hasSave() {
     return !!this.read(SAVE_KEY);
   }
@@ -209,6 +232,16 @@ export class Game {
   }
 
   // ------------------------------------------------------------------ lifecycle
+  // On the title screen a saved game is not erased by one stray tap: the first press asks, the second confirms.
+  requestNewGame() {
+    if (this.hasSave() && this.confirmNew <= 0) {
+      this.confirmNew = 4;
+      this.dirty = true;
+      return;
+    }
+    this.confirmNew = 0;
+    this.newGame();
+  }
   newGame() {
     this.sound?.init();
     this.sound?.resume();
@@ -239,9 +272,14 @@ export class Game {
     });
   }
   toTitle() {
+    this.confirmNew = 0;
     if (this.ending) {
       this.write(ENDING_KEY, this.ending.key);
       this.lastEnding = this.ending.key;
+      if (!this.endingsSeen.includes(this.ending.key)) {
+        this.endingsSeen.push(this.ending.key);
+        this.write(ENDINGS_KEY, JSON.stringify(this.endingsSeen));
+      }
       const r = this.ending.resolve;
       this.ending = null;
       r?.();
@@ -302,7 +340,7 @@ export class Game {
   }
   ask(prompt, options) {
     return new Promise((resolve) => {
-      this.choice = { prompt, options, resolve };
+      this.choice = { prompt, options, resolve, sel: 0 };
       this.dirty = true;
     });
   }
@@ -342,6 +380,7 @@ export class Game {
   }
 
   battle(encId) {
+    this.lastEnc = encId;
     return new Promise((resolve) => {
       this.fadeTo(1, 0.35).then(() => {
         this.mode = 'battle';
@@ -359,6 +398,8 @@ export class Game {
     this.mode = 'explore';
     this.sound?.music(this.scene.music);
     if (outcome === 'lose') {
+      const losses = (this.state.losses = this.state.losses || {});
+      if (this.lastEnc) losses[this.lastEnc] = (losses[this.lastEnc] || 0) + 1;
       await this.gameOver();
       resolve('lose');
       return;
@@ -490,7 +531,11 @@ export class Game {
     this.dirty = true;
   }
   setTab(t) {
-    if (this.menu) this.menu.tab = t;
+    if (this.menu) {
+      this.menu.tab = t;
+      this.menu.sel2 = null;
+      this.dirty = true;
+    }
   }
   selectClue(id) {
     const m = this.menu;
@@ -558,13 +603,14 @@ export class Game {
     if (!this.sound) return;
     this.sound.init();
     this.sound.resume();
-    this.sound.setEnabled(!this.sound.enabled);
-    this.dirty = true;
+    this.setSetting('sound', !this.sound.enabled);
   }
 
   openLampPuzzle() {
+    // already burning (closed the game in the moment between the last press and the door): count it as solved
+    if (isLit(this.state.lamps)) return Promise.resolve(true);
     return new Promise((resolve) => {
-      this.puzzle = { grid: this.state.lamps.slice(), solved: false, resolve };
+      this.puzzle = { grid: this.state.lamps.slice(), solved: false, hint: -1, resolve };
       this.mode = 'puzzle';
       this.dirty = true;
     });
@@ -573,6 +619,7 @@ export class Game {
     const p = this.puzzle;
     if (!p || p.solved) return;
     p.grid = pressLamp(p.grid, i);
+    p.hint = -1;
     this.state.lamps = p.grid.slice();
     this.sfx('lamp');
     if (isLit(p.grid)) {
@@ -580,6 +627,14 @@ export class Game {
       this.sfx('solve');
       this.wait(1.4).then(() => this.finishPuzzle(true));
     }
+  }
+  // One lamp that is part of a shortest solution. Pressing it never makes the puzzle harder.
+  lampHint() {
+    const p = this.puzzle;
+    if (!p || p.solved) return;
+    const sol = minimalSolution(p.grid);
+    p.hint = sol.length ? sol[0] : -1;
+    this.dirty = true;
   }
   closePuzzle() {
     this.finishPuzzle(false);
@@ -724,7 +779,8 @@ export class Game {
     this.dirty = true;
     const confirm = k === 'Enter' || k === ' ' || k === 'z';
     if (this.mode === 'title') {
-      if (confirm) (this.hasSave() ? this.continueGame() : this.newGame());
+      if (k === 'n') this.requestNewGame();
+      else if (confirm) (this.hasSave() ? this.continueGame() : this.newGame());
       return;
     }
     if (this.mode === 'battle') {
@@ -737,18 +793,23 @@ export class Game {
     }
     if (this.mode === 'puzzle') {
       if (k === 'Escape' && !this.puzzle?.solved) this.closePuzzle();
+      else if (k === 'h') this.lampHint();
       return;
     }
     if (this.menu) {
       if (k === 'Escape' || k === 'j' || k === 'm') this.closeMenu();
+      else if (k === 'ArrowRight' || k === 'ArrowLeft') {
+        const i = MENU_TABS.indexOf(this.menu.tab);
+        this.setTab(MENU_TABS[(i + (k === 'ArrowRight' ? 1 : MENU_TABS.length - 1)) % MENU_TABS.length]);
+      }
       return;
     }
     if (this.choice) {
       const n = this.choice.options.length;
-      if (k === '1' || k === '2' || k === '3' || k === '4') {
-        const i = Number(k) - 1;
-        if (i < n) this.pick(i);
-      }
+      if (/^[1-9]$/.test(k) && Number(k) <= n) this.pick(Number(k) - 1);
+      else if (k === 'ArrowDown' || k === 's' || k === 'ArrowRight') this.choice.sel = (this.choice.sel + 1) % n;
+      else if (k === 'ArrowUp' || k === 'w' || k === 'ArrowLeft') this.choice.sel = (this.choice.sel + n - 1) % n;
+      else if (confirm) this.pick(this.choice.sel);
       return;
     }
     if (this.dialogue) {
@@ -758,6 +819,10 @@ export class Game {
     if (this.script) return;
     if (k === 'j' || k === 'm') {
       this.openMenu('journal');
+      return;
+    }
+    if (k === 'Escape') {
+      this.openMenu('settings');
       return;
     }
     const dirs = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], a: [-1, 0], d: [1, 0], w: [0, -1], s: [0, 1] };
@@ -808,6 +873,10 @@ export class Game {
     for (const t of this.toasts) t.ttl -= dt;
     this.toasts = this.toasts.filter((t) => t.ttl > 0);
     if (this.ending) this.ending.t += dt;
+    if (this.confirmNew > 0) {
+      this.confirmNew = Math.max(0, this.confirmNew - dt);
+      this.dirty = true;
+    }
 
     if (this.mode === 'battle') {
       this.bv?.update(dt);
@@ -816,7 +885,8 @@ export class Game {
     const d = this.dialogue;
     if (d && !d.done) {
       const before = Math.floor(d.acc / 3);
-      d.acc += dt * 58;
+      const cps = (TEXT_SPEEDS[this.settings.textSpeed] || TEXT_SPEEDS[1]).cps;
+      d.acc = Number.isFinite(cps) ? d.acc + dt * cps : d.text.length + 8;
       d.shown = Math.floor(d.acc);
       if (Math.floor(d.acc / 3) !== before && d.who !== 'narr') this.sound?.play('blip');
       if (d.shown >= d.text.length + 8) d.done = true;
@@ -1039,7 +1109,7 @@ export class Game {
     drawDialogue(ctx, this, fr);
     drawChoice(ctx, this, fr);
     if (this.mode === 'puzzle') drawLampPuzzle(ctx, this, fr);
-    drawMenu(ctx, this, fr);
+    drawMenu(ctx, this, fr, { almanac: drawAlmanac, settings: drawSettings });
     drawEnding(ctx, this, fr);
   }
 

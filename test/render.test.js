@@ -104,7 +104,9 @@ for (const [name, W, H] of VIEWS) {
     checkButtons(g, 'choice');
     g.pick(0);
     await tick();
-    for (const tab of ['journal', 'party', 'items']) {
+    // meeting foes opens almanac pages; a few are learned about, the rest are not
+    g.state.bestiary = { husk: { weak: ['fire'], resist: [] }, kilnwright: { weak: ['water'], resist: ['fire'] }, eel: { weak: [], resist: [] }, moth: { weak: [], resist: ['water'] }, auditor: { weak: [], resist: [] }, warden: { weak: [], resist: [] } };
+    for (const tab of ['journal', 'party', 'items', 'almanac', 'settings']) {
       g.openMenu(tab);
       g.setTab(tab);
       g.selectClue('four_signs');
@@ -112,6 +114,22 @@ for (const [name, W, H] of VIEWS) {
       checkButtons(g, tab);
       g.closeMenu();
     }
+    // the almanac with an empty bestiary, a selected entry, and every setting flipped
+    g.state.bestiary = {};
+    g.openMenu('almanac');
+    g.setTab('almanac');
+    draw(g);
+    g.state.bestiary = { moth: { weak: [], resist: [] } };
+    g.menu.sel2 = 'moth';
+    draw(g);
+    g.setTab('settings');
+    g.setSetting('textSpeed', 3);
+    g.setSetting('calm', true);
+    g.setSetting('active', true);
+    g.setSetting('sound', false);
+    draw(g);
+    checkButtons(g, 'settings flipped');
+    g.closeMenu();
   });
 
   test(`[${name}] lamp puzzle overlay renders`, async () => {

@@ -81,6 +81,9 @@ canvas.addEventListener('pointerleave', () => {
 });
 window.addEventListener('keydown', (ev) => {
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(ev.key)) ev.preventDefault();
+  if (ev.ctrlKey || ev.metaKey || ev.altKey) return; // browser shortcuts are not ours
+  // a held Enter must not machine-gun through the dialogue (or pick a choice twice)
+  if (ev.repeat && (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'z' || ev.key === 'Escape')) return;
   game.key(ev.key.length === 1 ? ev.key.toLowerCase() : ev.key);
 });
 document.addEventListener('visibilitychange', () => {
@@ -114,10 +117,11 @@ function loop(now) {
   const dt = (now - last) / 1000;
   last = now;
   game.update(dt);
-  const fr = frameAt(game.time);
+  const rawFr = frameAt(game.time);
+  const fr = game.settings.calm ? 0 : rawFr; // calm: redraw at 12 fps for text and motion, but hold every shape still
   const moving = game.moving || game.camMoving;
-  if (fr !== lastFrame || game.dirty || (moving && now - lastDraw > 38)) {
-    lastFrame = fr;
+  if (rawFr !== lastFrame || game.dirty || (moving && now - lastDraw > 38)) {
+    lastFrame = rawFr;
     lastDraw = now;
     const t0 = performance.now();
     lctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);

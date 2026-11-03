@@ -18,6 +18,10 @@ export const UI = {
   blue: '#6ab4e8',
 };
 
+// Menu tabs. `almanac` and `settings` are drawn by menus.js (passed in by the Game, so this file never imports it back).
+export const MENU_TABS = ['journal', 'party', 'items', 'almanac', 'settings'];
+const TAB_LABELS = { journal: 'Journal', party: 'Party', items: 'Items', almanac: 'Almanac', settings: 'Settings' };
+
 export const SPEAKER_COLORS = {
   marl: '#e8c24a', ochre: '#d0652e', slip: '#8dd3c0', brine: '#8e9aa6', calaca: '#e8dcc0', warden: '#c9503f', kilnwright: '#c98a4e',
 };
@@ -326,25 +330,25 @@ export function drawChoice(ctx, g, fr) {
   const y = (v.portrait ? v.h * 0.42 : v.h / 2) - h / 2 - 20;
   panel(ctx, x, y, w, h, fr, { color: '#2a2660', seed: 222 });
   text(ctx, c.prompt, v.w / 2, y + 40, v.portrait ? 24 : 22, UI.gold, { align: 'center', weight: '700' });
-  c.options.forEach((o, i) => button(ctx, g, fr, `choice-${i}`, o, x + 28, y + 62 + i * pitch, w - 56, bh, () => g.pick(i), { size: v.portrait ? 21 : 19 }));
+  c.options.forEach((o, i) => button(ctx, g, fr, `choice-${i}`, `${g.touch ? '' : i + 1 + '  ·  '}${o}`, x + 28, y + 62 + i * pitch, w - 56, bh, () => g.pick(i), { size: v.portrait ? 21 : 19, color: !g.touch && i === c.sel ? '#7a6ad6' : undefined }));
 }
 
 // ------------------------------------------------------------------ menu overlay
-export function drawMenu(ctx, g, fr) {
+export function drawMenu(ctx, g, fr, extra = {}) {
   const m = g.menu;
   if (!m) return;
   const v = g.view;
   ctx.fillStyle = 'rgba(10,5,26,0.62)';
   ctx.fillRect(0, 0, v.w, v.h);
-  if (v.portrait) return drawMenuPortrait(ctx, g, fr);
+  if (v.portrait) return drawMenuPortrait(ctx, g, fr, extra);
   panel(ctx, 34, 28, 892, 484, fr, { color: '#2a2660', seed: 333 });
-  const tabs = [['journal', 'Journal'], ['party', 'Party'], ['items', 'Items']];
-  tabs.forEach(([id, label], i) => button(ctx, g, fr, `tab-${id}`, label, 60 + i * 150, 44, 140, 42, () => g.setTab(id), { color: m.tab === id ? '#7a6ad6' : '#3d3a80', size: 19 }));
+  MENU_TABS.forEach((id, i) => button(ctx, g, fr, `tab-${id}`, TAB_LABELS[id], 60 + i * 140, 44, 132, 42, () => g.setTab(id), { color: m.tab === id ? '#7a6ad6' : '#3d3a80', size: 18 }));
   button(ctx, g, fr, 'menu-close', 'Close', 806, 44, 96, 42, () => g.closeMenu(), { color: '#8a3f4a', hover: '#b05060', size: 18 });
 
   if (m.tab === 'journal') drawJournal(ctx, g, fr);
   else if (m.tab === 'party') drawParty(ctx, g, fr);
-  else drawItems(ctx, g, fr);
+  else if (m.tab === 'items') drawItems(ctx, g, fr);
+  else extra[m.tab]?.(ctx, g, fr);
 }
 
 function boardPos(c) {
@@ -563,16 +567,17 @@ function drawItems(ctx, g, fr) {
 }
 
 // ---- portrait versions of the three tabs: one column, finger-sized
-function drawMenuPortrait(ctx, g, fr) {
+function drawMenuPortrait(ctx, g, fr, extra = {}) {
   const m = g.menu;
   const v = g.view;
   panel(ctx, 12, 12, v.w - 24, v.h - 24, fr, { color: '#2a2660', seed: 333 });
-  const tabs = [['journal', 'Journal'], ['party', 'Party'], ['items', 'Items']];
-  tabs.forEach(([id, label], i) => button(ctx, g, fr, `tab-${id}`, label, 28 + i * 126, 28, 118, 52, () => g.setTab(id), { color: m.tab === id ? '#7a6ad6' : '#3d3a80', size: 19 }));
-  button(ctx, g, fr, 'menu-close', 'Close', v.w - 28 - 100, 28, 100, 52, () => g.closeMenu(), { color: '#8a3f4a', hover: '#b05060', size: 18 });
+  // five tabs and a close cross share the row on a 540-wide phone
+  MENU_TABS.forEach((id, i) => button(ctx, g, fr, `tab-${id}`, TAB_LABELS[id], 26 + i * 86, 28, 82, 52, () => g.setTab(id), { color: m.tab === id ? '#7a6ad6' : '#3d3a80', size: 13 }));
+  button(ctx, g, fr, 'menu-close', '×', v.w - 26 - 52, 28, 52, 52, () => g.closeMenu(), { color: '#8a3f4a', hover: '#b05060', size: 26 });
   if (m.tab === 'journal') drawJournalPortrait(ctx, g, fr);
   else if (m.tab === 'party') drawPartyPortrait(ctx, g, fr);
-  else drawItemsPortrait(ctx, g, fr);
+  else if (m.tab === 'items') drawItemsPortrait(ctx, g, fr);
+  else extra[m.tab]?.(ctx, g, fr);
 }
 
 function drawJournalPortrait(ctx, g, fr) {
@@ -707,13 +712,15 @@ export function drawLampPuzzle(ctx, g, fr) {
     const cy = cy0 - 4 * k + (Math.floor(i / 3) - 1) * 100 * k;
     const on = p.grid[i];
     const hov = inside(g, cx - 48 * k, cy - 48 * k, 96 * k, 96 * k);
+    if (p.hint === i) glow(ctx, cx, cy, 70 * k, '#7fd3d0', 0.55 + 0.25 * Math.sin(fr * 0.9));
     g.buttons.push({ id: `lamp-${i}`, x: cx - 48 * k, y: cy - 48 * k, w: 96 * k, h: 96 * k, onClick: () => g.pressLampCell(i) });
     if (on) glow(ctx, cx, cy, 80 * k, '#ffd98a', 0.55);
     blob(ctx, cx, cy, (hov ? 42 : 40) * k, (hov ? 42 : 40) * k, { color: on ? '#ffe3a0' : '#3d3350', seed: 610 + i, frame: fr, gloss: on ? 0.9 : 0.3, occlusion: on ? 0.08 : 0.4, outline: 1.6 });
     if (!on) blob(ctx, cx, cy, 16 * k, 16 * k, { color: '#2a2238', alpha: 0.6, seed: 630 + i, frame: fr, flat: true, outline: 0, noRim: true, gloss: 0 });
   }
   text(ctx, p.solved ? 'Every lamp is lit. Something breathes behind the door.' : 'Light every lamp.', cx0, cy0 + 168 * k, 16 * k, p.solved ? UI.gold : UI.ink, { align: 'center' });
-  button(ctx, g, fr, 'puzzle-close', 'Step back', cx0 - 80 * k, cy0 + 178 * k, 160 * k, 46 * k, () => g.closePuzzle(), { size: 17 * k, disabled: p.solved });
+  button(ctx, g, fr, 'puzzle-hint', 'Hint', cx0 + 8 * k, cy0 + 178 * k, 120 * k, 46 * k, () => g.lampHint(), { size: 17 * k, disabled: p.solved, color: '#3d6a9a', hover: '#5a8ac0' });
+  button(ctx, g, fr, 'puzzle-close', 'Step back', cx0 - 136 * k, cy0 + 178 * k, 136 * k, 46 * k, () => g.closePuzzle(), { size: 17 * k, disabled: p.solved });
 }
 
 // ------------------------------------------------------------------ title
@@ -730,9 +737,9 @@ export function drawTitleUI(ctx, g, fr) {
     neonText(ctx, 'a conspiracy of clay', cx, y0 + 156, 26, '#ff5fa8', fr, { dead: 11 });
     const bw = 340;
     const by = Math.round(v.h * 0.58);
-    button(ctx, g, fr, 'title-new', 'New Game', cx - bw / 2, by, bw, 76, () => g.newGame(), { size: 27, color: '#5a4eb0' });
+    button(ctx, g, fr, 'title-new', g.confirmNew > 0 ? 'Erase save & start?' : 'New Game', cx - bw / 2, by, bw, 76, () => g.requestNewGame(), { size: g.confirmNew > 0 ? 22 : 27, color: g.confirmNew > 0 ? '#8a3f4a' : '#5a4eb0' });
     button(ctx, g, fr, 'title-continue', 'Continue', cx - bw / 2, by + 94, bw, 76, () => g.continueGame(), { size: 27, disabled: !hasSave, color: '#3d6a9a', hover: '#5a8ac0' });
-    if (g.lastEnding) text(ctx, `Last ending: ${g.lastEnding}`, cx, v.h - 70, 16, UI.dim, { align: 'center', weight: '500' });
+    if (g.lastEnding) text(ctx, `Last ending: ${g.lastEnding}  ·  ${g.endingsSeen.length} of 4 found`, cx, v.h - 70, 15, UI.dim, { align: 'center', weight: '500' });
     text(ctx, 'tap to begin', cx, v.h - 36, 14, 'rgba(255,255,255,0.45)', { align: 'center', weight: '500' });
     button(ctx, g, fr, 'hud-sound', '', v.w - 74, 16, 58, 58, () => g.toggleSound(), { color: '#3d3a80' });
     iconSpeaker(ctx, v.w - 74 + 21, 16 + 29, fr, g.sound?.enabled !== false);
@@ -744,10 +751,10 @@ export function drawTitleUI(ctx, g, fr) {
   decoRule(ctx, 480, 276, 420, fr);
   neonText(ctx, 'a conspiracy of clay', 480, 302, 28, '#ff5fa8', fr, { dead: 11 });
   const bw = 270;
-  button(ctx, g, fr, 'title-new', 'New Game', 480 - bw / 2, 352, bw, 52, () => g.newGame(), { size: 23, color: '#5a4eb0' });
+  button(ctx, g, fr, 'title-new', g.confirmNew > 0 ? 'Erase save & start?' : 'New Game', 480 - bw / 2, 352, bw, 52, () => g.requestNewGame(), { size: g.confirmNew > 0 ? 20 : 23, color: g.confirmNew > 0 ? '#8a3f4a' : '#5a4eb0' });
   button(ctx, g, fr, 'title-continue', 'Continue', 480 - bw / 2, 414, bw, 52, () => g.continueGame(), { size: 23, disabled: !hasSave, color: '#3d6a9a', hover: '#5a8ac0' });
-  if (g.lastEnding) text(ctx, `Last ending: ${g.lastEnding}`, 480, 492, 15, UI.dim, { align: 'center', weight: '500' });
-  text(ctx, 'tap · click · arrow keys · enter', 480, 520, 13, 'rgba(255,255,255,0.45)', { align: 'center', weight: '500' });
+  if (g.lastEnding) text(ctx, `Last ending: ${g.lastEnding}  ·  ${g.endingsSeen.length} of 4 found`, 480, 492, 15, UI.dim, { align: 'center', weight: '500' });
+  text(ctx, 'tap · click · enter to continue · N for a new game', 480, 520, 13, 'rgba(255,255,255,0.45)', { align: 'center', weight: '500' });
   button(ctx, g, fr, 'hud-sound', '', 900, 14, 46, 46, () => g.toggleSound(), { color: '#3d3a80' });
   iconSpeaker(ctx, 920, 37, fr, g.sound?.enabled !== false);
 }

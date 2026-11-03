@@ -13,7 +13,7 @@ import { mulberry32 } from '../engine/rng.js';
 import { CHARACTERS, ENEMIES, GLAZES, ITEMS, LIMITS, MOVES, statsAt, glazeLevel, levelSkill } from './data.js';
 
 export const TIMING = { hit: 0.38, move: 1.05, multi: 1.4 };
-const WAIT_SCALE = 0.12;
+export const WAIT_SCALE = 0.12; // how slowly time crawls while a command is pending (1 = fully active)
 const FX_KEYS = ['soaked', 'brittle', 'hushed', 'scorched', 'haste'];
 const SCORCH_EVERY = 1.5;
 const STEAM = 1.35;
@@ -45,7 +45,7 @@ export function makeFoeCombatant(kind, index, mod = {}) {
 
 export class Battle {
   // mods: one object per foe (see ENCOUNTERS.*.mods); yieldAt: the Warden-spoken-to-by-name fight ends at this HP fraction
-  constructor({ party, foes, inv = {}, seed = 1, mastery = {}, mods = [], yieldAt = 0 }) {
+  constructor({ party, foes, inv = {}, seed = 1, mastery = {}, mods = [], yieldAt = 0, waitScale = WAIT_SCALE }) {
     this.rng = mulberry32(seed);
     this.party = party.map(makePartyCombatant);
     this.foes = foes.map((k, i) => makeFoeCombatant(k, i, mods[i]));
@@ -53,6 +53,7 @@ export class Battle {
     this.inv = inv;
     this.mastery = mastery;
     this.yieldAt = yieldAt;
+    this.waitScale = waitScale;
     this.clock = 0;
     this.lock = 0.7;
     this.events = [];
@@ -99,7 +100,7 @@ export class Battle {
       return;
     }
     if (this.result) return;
-    const scale = this.waiting ? WAIT_SCALE : 1;
+    const scale = this.waiting ? this.waitScale : 1;
     for (const c of this.all) {
       if (!c.alive) continue;
       if (c.slow > 0) c.slow = Math.max(0, c.slow - dt * scale);

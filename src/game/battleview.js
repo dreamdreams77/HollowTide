@@ -68,9 +68,10 @@ export class BattleView {
     this.done = done;
     this.b = new Battle({
       party: game.state.party, foes: enc.foes, inv: game.state.inv, seed: (Math.random() * 1e9) | 0,
-      mastery: game.state.glazeAp || (game.state.glazeAp = {}), mods: enc.mods || [], yieldAt: enc.yieldAt || 0,
+      mastery: game.state.glazeAp || (game.state.glazeAp = {}), mods: enc.mods || [], yieldAt: enc.yieldAt || 0, waitScale: game.settings?.active ? 1 : undefined,
     });
     this.known = game.state.bestiary || (game.state.bestiary = {}); // weaknesses you have seen with your own eyes
+    for (const f of enc.foes) this.known[f] = this.known[f] || { weak: [], resist: [] }; // meeting a foe is enough to open its almanac page
     this.kick = 0; // camera punch on heavy hits
     this.b.lock = 1.5;
     this.vis = {};

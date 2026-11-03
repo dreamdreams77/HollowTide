@@ -232,3 +232,14 @@ export const DEDUCTIONS = {
   lullaby: { id: 'lullaby', needs: ['four_signs', 'slip_memory'], title: 'The Four Beats', text: 'Mouth, Hand, Eye, Tide: four signs on a wall, four phrases the sea hums going out, four beats in a ferry lullaby. It was never a lock. It is a song, and the glyphs are the order you sing it in.' },
 };
 export const dedFor = (a, b) => Object.values(DEDUCTIONS).find((d) => d.needs.includes(a) && d.needs.includes(b) && a !== b) || null;
+
+// ---- endings and player settings (kept here so the game and its menus can both read them without importing each other)
+export const ENDING_KEYS = ['The Long Sleep', 'The Waking', 'The Forty-Second Thumb', 'The Retained'];
+// Player settings live outside the save, so they survive New Game and a cleared save slot.
+export const TEXT_SPEEDS = [
+  { label: 'Slow', cps: 34 },
+  { label: 'Normal', cps: 58 },
+  { label: 'Fast', cps: 120 },
+  { label: 'Instant', cps: Infinity },
+];
+export const DEFAULT_SETTINGS = { sound: true, textSpeed: 1, calm: false, active: false };
