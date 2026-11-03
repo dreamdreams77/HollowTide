@@ -1066,20 +1066,3 @@ export function paintFore(ctx, id, fr) {
     plane(ctx, 1.4, () => bokeh(ctx, fr, { n: 7, y0: 240, y1: 540, seed: 47, a: 0.1, colors: ['#ff9a4a', '#ff6a2a'], r0: 20, r1: 54, drift: 0.8 }));
   }
 }
-/* Make UI overlay responsive on mobile screens */
-@media (max-width: 768px) {
-    /* Prevent UI cards from taking over the entire screen */
-    .ui-overlay, .dashboard, .hud-panel, div[class*="overlay"], div[class*="panel"] {
-        max-width: 90vw !important;
-        max-height: 40vh !important;
-        overflow-y: auto !important;
-        opacity: 0.85; /* Makes background 3D scene visible */
-        font-size: 0.8rem !important;
-    }
-
-    /* Option to collapse/hide panels on tap so you can see the 3D graphics */
-    body {
-        touch-action: manipulation;
-    }
-  }
-  
