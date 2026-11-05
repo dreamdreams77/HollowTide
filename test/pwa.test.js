@@ -92,3 +92,19 @@ test('the build stamp (the cache name) is a reproducible content hash', () => {
     rmSync(b, { recursive: true, force: true });
   }
 });
+
+test('every icon <link> in the page resolves to a file in the source tree and in the build', () => {
+  const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
+  const hrefs = [...html.matchAll(/<link rel="(?:icon|apple-touch-icon)"[^>]*href="([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(hrefs.length >= 2, 'expected favicon and apple-touch-icon links');
+  const dir = mkdtempSync(join(tmpdir(), 'ht-links-'));
+  try {
+    execFileSync('node', [join(ROOT, 'tools/build.mjs'), '--out', join(dir, 'index.html')], { stdio: 'pipe' });
+    for (const h of hrefs) {
+      assert.ok(existsSync(join(ROOT, h)), `icon link ${h} is missing from the source tree`);
+      assert.ok(existsSync(join(dir, h)), `icon link ${h} is missing from the build`);
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

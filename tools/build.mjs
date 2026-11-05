@@ -119,15 +119,17 @@ const kb = (statSync(OUT).size / 1024).toFixed(0);
 // ---- installable app: manifest, icons and the service worker, next to the built page
 const outDir = dirname(OUT);
 const icons = readdirSync(ROOT).filter((f) => /^icon-(?:maskable-)?(?:192|512)\.png$/.test(f)).sort();
+// icons referenced by the page's <link>s (favicon, apple-touch-icon), which live at the repo root too
+const linkIcons = ['favicon-64.png', 'apple-touch-icon.png'].filter((f) => existsSync(join(ROOT, f)));
 const manifestSrc = join(ROOT, 'manifest.webmanifest');
 const swSrc = join(ROOT, 'sw.js');
 if (existsSync(manifestSrc) && existsSync(swSrc)) {
   copyFileSync(manifestSrc, join(outDir, 'manifest.webmanifest'));
   for (const f of icons) copyFileSync(join(ROOT, f), join(outDir, f));
-  if (existsSync(join(ROOT, 'apple-touch-icon.png'))) copyFileSync(join(ROOT, 'apple-touch-icon.png'), join(outDir, 'apple-touch-icon.png'));
+  for (const f of linkIcons) copyFileSync(join(ROOT, f), join(outDir, f));
 
   const pageName = relative(outDir, OUT).split('\\').join('/');
-  const files = ['./', './' + pageName, './manifest.webmanifest', ...icons.map((f) => `./${f}`), ...(existsSync(join(ROOT, 'apple-touch-icon.png')) ? ['./apple-touch-icon.png'] : [])];
+  const files = ['./', './' + pageName, './manifest.webmanifest', ...icons.map((f) => `./${f}`), ...linkIcons.map((f) => `./${f}`)];
   const hash = createHash('sha1');
   hash.update(out);
   hash.update(readFileSync(manifestSrc));

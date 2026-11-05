@@ -51,6 +51,12 @@ const pier = {
     { prop: 'crates', x: 112, y: 506 },
     { prop: 'post', x: 262, y: 474 },
     { prop: 'post', x: 610, y: 438 },
+    { prop: 'fishrod', x: 436, y: 446 },
+    { prop: 'flatstones', x: 366, y: 452 },
+    { prop: 'shells', x: 662, y: 362 },
+    { prop: 'signal', x: 691, y: 440 },
+    { prop: 'underpier', x: 552, y: 428 },
+    { prop: 'ferrylamp', x: 104, y: 428 },
   ],
 
   async enter(g) {
@@ -446,6 +452,9 @@ const archive = {
   props: () => [
     { prop: 'cart', x: 640, y: 490 },
     { prop: 'stool', x: 410, y: 502 },
+    { prop: 'cards', x: 336, y: 424 },
+    { prop: 'clock', x: 716, y: 430 },
+    { prop: 'journal', x: 911, y: 440 },
   ],
 
   async enter(g) {
@@ -719,6 +728,10 @@ const chapel = {
   props: () => [
     { prop: 'confessional', x: 640, y: 452 },
     { prop: 'pew', x: 300, y: 508 },
+    { prop: 'bottles', x: 722, y: 440 },
+    { prop: 'tidepoolnote', x: 142, y: 440 },
+    { prop: 'memorybox', x: 242, y: 440 },
+    { prop: 'garden', x: 860, y: 440 },
   ],
 
   async enter(g) {
@@ -851,6 +864,7 @@ const kiln = {
   props: () => [
     { prop: 'anvil', x: 205, y: 488 },
     { prop: 'coalcart', x: 790, y: 494 },
+    { prop: 'clayworkbench', x: 712, y: 440 },
   ],
 
   async enter(g) {

@@ -19,7 +19,7 @@ function poly(ctx, corners, o = {}) {
 }
 
 // half the width of each prop on the floor, so the game can tell when someone is standing behind it
-export const PROP_W = { post: 14, crates: 44, cart: 52, stool: 20, confessional: 60, pew: 58, coalcart: 48, anvil: 22 };
+export const PROP_W = { post: 14, crates: 44, cart: 52, stool: 20, confessional: 60, pew: 58, coalcart: 48, anvil: 22, fishrod: 26, flatstones: 34, shells: 40, signal: 24, underpier: 30, ferrylamp: 22, cards: 34, clock: 26, journal: 24, bottles: 32, tidepoolnote: 32, memorybox: 28, garden: 34, clayworkbench: 34 };
 
 export const PROPS = {
   // a mooring post with its turns of rope, and a loose end lying on the planks
@@ -39,6 +39,149 @@ export const PROPS = {
     for (const x of [-12, 8]) slab(ctx, x - 3, -62, 6, 26, { color: '#6a4c30', seed: 9211 + x, frame: fr, outline: 0.5, noRim: true, alpha: 0.7, rot: -0.04 });
     blob(ctx, 34, -8, 15, 8, { color: '#8a7a62', seed: 9220, frame: fr, outline: 0.9, tex: 0.3 });
     blob(ctx, 34, -9, 8, 4, { color: '#5e4a40', seed: 9221, frame: fr, flat: true, outline: 0, noRim: true, gloss: 0 });
+  },
+  // Brine's fishing spot: a rod propped on a little bucket, the line dipping toward the water
+  fishrod(ctx, fr) {
+    base(ctx, 26);
+    blob(ctx, -12, -9, 11, 10, { color: '#6a5a4a', seed: 9501, frame: fr, outline: 1, tex: 0.4, occlusion: 0.5 });
+    blob(ctx, -12, -17, 10, 3.4, { color: '#2e2630', seed: 9502, frame: fr, flat: true, outline: 0, noRim: true, gloss: 0 });
+    limb(ctx, -14, -8, 22, -58, 3.2, 1.6, { color: '#8a6a44', seed: 9503, frame: fr, outline: 0.8, tex: 0.4 });
+    limb(ctx, 22, -58, 30 + (fr % 2), -14, 0.8, 0.8, { color: '#e6dcc4', seed: 9504, frame: fr, outline: 0.3, noRim: true, alpha: 0.85 });
+    blob(ctx, 30 + (fr % 2), -11, 3.4, 3.4, { color: '#d9553a', seed: 9505, frame: fr, outline: 0.7, occlusion: 0.2 });
+  },
+  // Slip's skipping stones: a little stack of flat pebbles and one ready to throw
+  flatstones(ctx, fr) {
+    base(ctx, 34);
+    blob(ctx, 0, -6, 26, 7, { color: '#7a7488', seed: 9601, frame: fr, outline: 1, tex: 0.4, occlusion: 0.5 });
+    blob(ctx, -2, -13, 20, 6, { color: '#8e889c', seed: 9602, frame: fr, outline: 1, tex: 0.4, occlusion: 0.4 });
+    blob(ctx, 2, -19, 14, 5, { color: '#a49eb0', seed: 9603, frame: fr, outline: 0.9, tex: 0.3, occlusion: 0.3 });
+    blob(ctx, 30, -4, 11, 4, { color: '#8e889c', seed: 9604, frame: fr, outline: 0.9, tex: 0.4, occlusion: 0.4, rot: 0.1 });
+  },
+  // the tidepool shell game: three shells in a ring of ripples, one nudged a little by the water
+  shells(ctx, fr) {
+    for (const [w, a] of [[40, 0.35], [30, 0.5]]) {
+      ctx.save();
+      ctx.globalAlpha = a;
+      ctx.strokeStyle = '#cfe0e8';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.ellipse(0, -2, w + (fr % 3), w * 0.28 + (fr % 3) * 0.4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    [[-22, '#d9a77a'], [0, '#e6c4a0'], [22, '#c98f6a']].forEach(([x, c], i) => {
+      blob(ctx, x, -8 - (i === 1 ? fr % 2 : 0), 12, 9, { color: c, seed: 9701 + i, frame: fr, outline: 1, tex: 0.3, occlusion: 0.4 });
+      for (const k of [-4, 0, 4]) limb(ctx, x + k * 0.5, -3, x + k, -14, 1, 0.8, { color: '#a07a56', seed: 9710 + i * 3 + k, frame: fr, outline: 0.2, noRim: true, alpha: 0.6 });
+    });
+  },
+  // keeper's signal shutter: a lantern with a slatted shutter on a short post, glowing in a slow code
+  signal(ctx, fr) {
+    base(ctx, 22);
+    slab(ctx, -5, -34, 10, 34, { color: '#4b3b45', seed: 9801, frame: fr, outline: 0.9, tex: 0.4, occlusion: 0.5 });
+    slab(ctx, -15, -66, 30, 32, { color: '#6a5a4a', seed: 9802, frame: fr, outline: 1, tex: 0.4, occlusion: 0.5 });
+    glow(ctx, 0, -50, 34, '#ffc86a', fr % 4 < 2 ? 0.55 : 0.2);
+    for (const y of [-60, -52, -44]) slab(ctx, -12, y, 24, 3.5, { color: '#2e2630', seed: 9803 + y, frame: fr, outline: 0.3, noRim: true, alpha: 0.8 });
+    blob(ctx, 0, -68, 17, 5, { color: '#7a5e44', seed: 9810, frame: fr, outline: 0.9, occlusion: 0.3 });
+  },
+  // something under the pier: two pale eyes and a curious bump of a head, peeking over the planks' edge
+  underpier(ctx, fr) {
+    shadow(ctx, 0, 2, 26, 6, 0.35);
+    blob(ctx, 0, -10, 26, 14, { color: '#6c7f8a', seed: 9901, frame: fr, outline: 1, tex: 0.4, occlusion: 0.5 });
+    for (const x of [-9, 9]) {
+      blob(ctx, x, -14, 5.5, 5.5, { color: '#f4efe0', seed: 9902 + x, frame: fr, outline: 0.7, occlusion: 0.2 });
+      blob(ctx, x + (fr % 2 ? 1 : -1), -14, 2.2, 2.6, { color: '#2e2630', seed: 9904 + x, frame: fr, flat: true, outline: 0, noRim: true, gloss: 0 });
+    }
+    glow(ctx, 0, -12, 30, '#9ad6e6', 0.14);
+  },
+  // the midnight crossing: a mooring lamp with a coil of ferry rope, lit a pale ghostly blue
+  ferrylamp(ctx, fr) {
+    base(ctx, 22);
+    limb(ctx, 0, 0, 0, -58, 3.4, 2.6, { color: '#3a2c22', seed: 9951, frame: fr, outline: 0.9 });
+    slab(ctx, -8, -76, 16, 20, { color: '#8fb6c8', seed: 9952, frame: fr, outline: 0.9, occlusion: 0.3 });
+    glow(ctx, 0, -66, 36, '#9ad6ff', 0.4 + (fr % 3) * 0.05);
+    blob(ctx, 14, -5, 12, 6, { color: '#8a7a62', seed: 9953, frame: fr, outline: 0.9, tex: 0.3 });
+    blob(ctx, 14, -6, 6, 3, { color: '#5e4a40', seed: 9954, frame: fr, flat: true, outline: 0, noRim: true, gloss: 0 });
+  },
+  // Hueso's loose index cards: a fan of cream cards and a few that fell on the floor
+  cards(ctx, fr) {
+    base(ctx, 34);
+    for (let i = 0; i < 5; i++) slab(ctx, -26 + i * 11, -22 + (i % 2) * 2, 14, 22, { color: ['#ebe0c8', '#e0d4b8', '#f2e8d2'][i % 3], seed: 11001 + i, frame: fr, outline: 0.8, tex: 0.3, occlusion: 0.3, rot: (i - 2) * 0.2 });
+    slab(ctx, 22, -4, 14, 6, { color: '#e0d4b8', seed: 11010, frame: fr, outline: 0.7, tex: 0.3, rot: 0.3 });
+    slab(ctx, -34, -4, 12, 5, { color: '#ebe0c8', seed: 11011, frame: fr, outline: 0.7, tex: 0.3, rot: -0.2 });
+  },
+  // the clockmaker's stopped clock: a tall case, a face with hands that do not move, a hanging pendulum
+  clock(ctx, fr) {
+    base(ctx, 26);
+    slab(ctx, -16, -92, 32, 92, { color: '#5a4636', seed: 12001, frame: fr, outline: 1.1, tex: 0.5, occlusion: 0.5 });
+    blob(ctx, 0, -72, 12, 12, { color: '#e8dcc0', seed: 12002, frame: fr, outline: 0.9, occlusion: 0.2 });
+    limb(ctx, 0, -72, 0, -80, 1.4, 1, { color: '#2e2630', seed: 12003, frame: fr, outline: 0.3, noRim: true });
+    limb(ctx, 0, -72, 6, -69, 1.4, 1, { color: '#2e2630', seed: 12004, frame: fr, outline: 0.3, noRim: true });
+    slab(ctx, -9, -50, 18, 40, { color: '#3a2c22', seed: 12005, frame: fr, outline: 0.6, noRim: true, alpha: 0.7 });
+    limb(ctx, 0, -48, 0, -22, 1, 1, { color: '#b79a5a', seed: 12006, frame: fr, outline: 0.3, noRim: true });
+    blob(ctx, 0, -22, 5, 5, { color: '#b79a5a', seed: 12007, frame: fr, outline: 0.7, occlusion: 0.2 });
+  },
+  // the completion journal: a big open book on a lectern with a ribbon marker
+  journal(ctx, fr) {
+    base(ctx, 24);
+    limb(ctx, 0, 0, 0, -34, 4.4, 3.6, { color: '#5a4636', seed: 13001, frame: fr, outline: 0.9 });
+    slab(ctx, -22, -52, 44, 20, { color: '#7a3a3a', seed: 13002, frame: fr, outline: 1, tex: 0.4, occlusion: 0.5, rot: -0.05 });
+    slab(ctx, -19, -55, 18, 17, { color: '#eadfc4', seed: 13003, frame: fr, outline: 0.7, tex: 0.3, rot: -0.05 });
+    slab(ctx, 1, -55, 18, 17, { color: '#f2e8d2', seed: 13004, frame: fr, outline: 0.7, tex: 0.3, rot: -0.05 });
+    limb(ctx, 0, -40, 3, -26, 1.8, 1.2, { color: '#d9553a', seed: 13005, frame: fr, outline: 0.3, noRim: true });
+  },
+  // messages in bottles: a little heap of green glass bottles, each with a curled scroll inside
+  bottles(ctx, fr) {
+    base(ctx, 32);
+    [[-18, 0.1], [0, -0.05], [18, 0.15]].forEach(([x, r], i) => {
+      blob(ctx, x, -14, 8, 14, { color: ['#7fb59a', '#6aa58a', '#8fc5a8'][i], seed: 14001 + i, frame: fr, outline: 0.9, occlusion: 0.2, rot: r });
+      blob(ctx, x + r * 10, -30, 3.2, 5, { color: '#7fb59a', seed: 14005 + i, frame: fr, outline: 0.8 });
+      blob(ctx, x, -14, 3, 8, { color: '#eadfc4', seed: 14009 + i, frame: fr, flat: true, outline: 0, noRim: true, gloss: 0, alpha: 0.85 });
+    });
+  },
+  // tidepool naturalist: a shallow pool with a little notebook and a magnifier beside it
+  tidepoolnote(ctx, fr) {
+    shadow(ctx, 0, 2, 32, 7, 0.25);
+    blob(ctx, 0, -3, 28, 8, { color: '#4a7a8a', seed: 15001, frame: fr, outline: 1, tex: 0.4, occlusion: 0.4 });
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = '#cfe0e8';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(-6, -4, 8 + (fr % 3), 2.4, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    slab(ctx, 22, -14, 16, 12, { color: '#eadfc4', seed: 15002, frame: fr, outline: 0.8, tex: 0.3, rot: 0.15 });
+    blob(ctx, 32, -6, 5, 5, { color: '#b79a5a', seed: 15003, frame: fr, outline: 0.8, occlusion: 0.2 });
+    limb(ctx, 35, -3, 40, 4, 1.4, 1.2, { color: '#5a4636', seed: 15004, frame: fr, outline: 0.4 });
+  },
+  // the house that remembers: a dollhouse-sized cottage with a warm lit window and a tiny door
+  memorybox(ctx, fr) {
+    base(ctx, 28);
+    slab(ctx, -22, -40, 44, 40, { color: '#a58a6a', seed: 16001, frame: fr, outline: 1.1, tex: 0.5, occlusion: 0.5 });
+    poly(ctx, [[-28, -40], [28, -40], [0, -62]], { color: '#7a3a3a', seed: 16002, frame: fr, outline: 1, tex: 0.4, occlusion: 0.4 });
+    glow(ctx, -8, -24, 22, '#ffc86a', 0.55);
+    slab(ctx, -14, -30, 12, 12, { color: '#ffe08a', seed: 16003, frame: fr, flat: true, outline: 0.6, noRim: true, gloss: 0 });
+    slab(ctx, 6, -22, 10, 22, { color: '#5e432a', seed: 16004, frame: fr, outline: 0.7, noRim: true });
+  },
+  // the garden of lost things: a tiny fenced bed with a mitten, a button and a paper star
+  garden(ctx, fr) {
+    base(ctx, 34);
+    blob(ctx, 0, -6, 32, 9, { color: '#4a3a30', seed: 17001, frame: fr, outline: 1, tex: 0.5, occlusion: 0.5 });
+    for (let i = 0; i < 5; i++) slab(ctx, -30 + i * 14, -22, 4, 18, { color: '#8a6a44', seed: 17010 + i, frame: fr, outline: 0.7, tex: 0.4 });
+    limb(ctx, -30, -16, 30, -16, 2, 2, { color: '#8a6a44', seed: 17020, frame: fr, outline: 0.6 });
+    blob(ctx, -16, -9, 7, 5, { color: '#c0573a', seed: 17030, frame: fr, outline: 0.8, occlusion: 0.3 });
+    blob(ctx, 2, -8, 4, 4, { color: '#e8dcc0', seed: 17031, frame: fr, outline: 0.7, occlusion: 0.2 });
+    blob(ctx, 18, -10, 6, 6, { color: '#f2d680', seed: 17032, frame: fr, outline: 0.7, occlusion: 0.2, rot: 0.4 });
+  },
+  // the kilnwright's workshop: a low bench with a lump of clay, a little figure half-shaped, and a pair of tools
+  clayworkbench(ctx, fr) {
+    base(ctx, 34);
+    slab(ctx, -32, -30, 64, 8, { color: '#7a5a3a', seed: 18001, frame: fr, outline: 1, tex: 0.5, occlusion: 0.5 });
+    for (const x of [-26, 24]) slab(ctx, x - 3, -22, 6, 22, { color: '#5e432a', seed: 18002 + x, frame: fr, outline: 0.7, tex: 0.4 });
+    blob(ctx, -10, -40, 12, 10, { color: '#a8703a', seed: 18005, frame: fr, outline: 1, tex: 0.4, occlusion: 0.4 });
+    blob(ctx, 12, -42, 6, 8, { color: '#c4895a', seed: 18006, frame: fr, outline: 0.9, occlusion: 0.3 });
+    blob(ctx, 12, -52, 4, 4, { color: '#c4895a', seed: 18007, frame: fr, outline: 0.8, occlusion: 0.2 });
+    limb(ctx, 26, -34, 34, -46, 1.8, 1.4, { color: '#8a7a8a', seed: 18008, frame: fr, outline: 0.5 });
   },
   // a book cart: shelves of tablets on two wheels and a long handle
   cart(ctx, fr) {
